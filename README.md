@@ -1,0 +1,3 @@
+﻿# Discord Notification
+
+This plugin for N.I.N.A allows users to send notifications directly to Discord. It can be integrated as an introduction to the sequencer in N.I.N.A, providing seamless communication. Additionally, users can specify an image path, such as a folder where a live stacked image is stored, which will also be sent over Discord. This makes it easy to share updates and images in real-time during imaging sessions.
