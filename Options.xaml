@@ -8,12 +8,12 @@
     <DataTemplate x:Key="Discord Notification_Options">
         <StackPanel Orientation="Vertical">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Default Notification Message" />
-                <TextBox MinWidth="50" Text="{Binding DefaultNotificationMessage}" />
+                <TextBlock Width="120" Text="Discord Webhook URL" />
+                <TextBox Margin="10,0,0,0" MinWidth="250" Text="{Binding DiscordWebhookUrl}" />
             </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Profile Specific Notification Message" />
-                <TextBox MinWidth="50" Text="{Binding ProfileSpecificNotificationMessage}" />
+            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                <TextBlock Width="120" Text="Image Directory" />
+                <TextBox Margin="10,0,0,0" MinWidth="250" Text="{Binding ImageDirectory}" />
             </StackPanel>
         </StackPanel>
     </DataTemplate>

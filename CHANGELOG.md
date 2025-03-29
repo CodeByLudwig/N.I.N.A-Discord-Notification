@@ -1,4 +1,4 @@
 ﻿# Discord Notification
 
 ## 1.0.0.1
-- Initial release
+- Feature: Added trigger for sending messages to discord after x exposures taken

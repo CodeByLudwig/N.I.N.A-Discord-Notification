@@ -36,7 +36,7 @@ using System.Runtime.InteropServices;
 // The following attributes are optional for the official manifest meta data
 
 //[Optional] Your plugin homepage URL - omit if not applicaple
-[assembly: AssemblyMetadata("Homepage", "https://mypluginwebsite.com/")]
+[assembly: AssemblyMetadata("Homepage", "")]
 
 //[Optional] Common tags that quickly describe your plugin
 [assembly: AssemblyMetadata("Tags", "")]
