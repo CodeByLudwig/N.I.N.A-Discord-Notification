@@ -17,23 +17,29 @@ jobs:
       with:
         dotnet-version: 8.x
 
-    - name: Restore dependencies
-      run: dotnet restore
-
-    - name: Build Release
+    - name: Build Release DLL
       run: dotnet build -c Release --no-restore
 
-    - name: Find DLLs
-      id: find-dlls
+    - name: List Build Files (Debug)
+      run: dir bin\Release /s  # Windows CMD-Befehl zur Pfadkontrolle
+
+    - name: Find DLL
+      id: find-dll
       shell: pwsh
       run: |
-        $dlls = Get-ChildItem -Path ./bin/Release/ -Recurse -Filter *.dll | Select-Object -ExpandProperty FullName
-        if (-not $dlls) { Write-Error "No DLL files found"; exit 1 }
-        echo "dll_paths=$($dlls -join ',')" >> $env:GITHUB_OUTPUT
+        $dll = Get-ChildItem -Path "bin/Release/net8.0-windows*" -Recurse -Filter *.dll |
+               Where-Object { $_.Name -notlike '*Test*' } |
+               Select-Object -First 1
+        
+        if (-not $dll) { 
+            Write-Error "❌ Keine DLL in bin/Release/net8.0-windows gefunden"
+            exit 1 
+        }
+        echo "dll_path=$($dll.FullName)" >> $env:GITHUB_OUTPUT
 
-    - name: Upload DLLs to Release
+    - name: Upload DLL to Release
       uses: softprops/action-gh-release@v1
       with:
-        files: ${{ steps.find-dlls.outputs.dll_paths }}
+        files: ${{ steps.find-dll.outputs.dll_path }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
