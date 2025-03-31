@@ -1,0 +1,38 @@
+name: Release Build
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.x
+
+    - name: Build Release
+      run: dotnet build -c Release --no-restore
+
+    - name: Find DLL automatically
+      id: find-dll
+      shell: pwsh
+      run: |
+        $dll = Get-ChildItem -Path . -Recursive -Filter *.dll | 
+               Where-Object { $_.Directory -like '*bin\Release*' -and $_.Extension -eq '.dll' } |
+               Select-Object -First 1
+        if (-not $dll) { exit 1 }
+        echo "dll_path=$($dll.FullName)" >> $env:GITHUB_OUTPUT
+
+    - name: Upload DLL to Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ${{ steps.find-dll.outputs.dll_path }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
