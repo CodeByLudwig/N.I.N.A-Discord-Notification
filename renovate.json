@@ -1,0 +1,30 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", ":dependencyDashboard"],
+  "timezone": "Europe/Berlin",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["patch"],
+      "groupName": "patch updates",
+      "groupSlug": "patch-updates",
+      "automerge": true,
+      "automergeType": "branch"
+    },
+    {
+      "matchUpdateTypes": ["minor"],
+      "groupName": "minor updates",
+      "groupSlug": "minor-updates"
+    },
+    {
+      "matchManagers": ["npm"],
+      "assignees": ["omgitsjan"],
+      "reviewers": ["omgitsjan"],
+      "matchUpdateTypes": ["minor", "major", "patch"]
+    }
+  ],
+  "npm": {
+    "fileMatch": ["^package\\.json$"]
+  },
+  "schedule": ["before 11am on the first day of the month"],
+  "baseBranches": ["master"]
+}
