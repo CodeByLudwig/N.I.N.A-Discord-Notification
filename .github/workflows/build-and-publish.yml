@@ -27,10 +27,14 @@ jobs:
       id: find-dll
       shell: pwsh
       run: |
-        $dll = Get-ChildItem -Path . -Recursive -Filter *.dll | 
-               Where-Object { $_.Directory -like '*bin\Release*' -and $_.Extension -eq '.dll' } |
+        $dll = Get-ChildItem -Path . -Recurse -Filter *.dll |
+               Where-Object { 
+                   $_.Directory -like '*bin\Release*' -and 
+                   $_.Extension -eq '.dll' -and 
+                   $_.Name -notlike '*Test*' 
+               } |
                Select-Object -First 1
-        if (-not $dll) { exit 1 }
+        if (-not $dll) { Write-Error "No DLL found"; exit 1 }
         echo "dll_path=$($dll.FullName)" >> $env:GITHUB_OUTPUT
 
     - name: Upload DLL to Release
