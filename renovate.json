@@ -17,8 +17,8 @@
     },
     {
       "matchManagers": ["npm"],
-      "assignees": ["omgitsjan"],
-      "reviewers": ["omgitsjan"],
+      "assignees": ["CodeByLudiwg"],
+      "reviewers": ["CodeByLudiwg"],
       "matchUpdateTypes": ["minor", "major", "patch"]
     }
   ],
@@ -26,5 +26,5 @@
     "fileMatch": ["^package\\.json$"]
   },
   "schedule": ["before 11am on the first day of the month"],
-  "baseBranches": ["master"]
+  "baseBranches": ["develop"]
 }
