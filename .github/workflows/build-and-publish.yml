@@ -1,0 +1,55 @@
+name: Release Build
+
+on:
+  release:
+    types: [created]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8.x
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Publish Release
+      run: dotnet publish -c Release --no-restore -o ./bin/Release/net8.0-windows/publish
+
+    - name: Validate Published DLLs
+      shell: pwsh
+      run: |
+        $publishPath = "bin/Release/net8.0-windows/publish"
+        $requiredDlls = @(
+            "DanielLudwig.NINA.DiscordNotification.dll",
+            "Discord.Net.Webhook.dll"
+        )
+        foreach ($dll in $requiredDlls) {
+            $dllPath = Join-Path $publishPath $dll
+            if (-not (Test-Path $dllPath)) {
+                Write-Error "❌ Required DLL not found: $dllPath"
+                Get-ChildItem $publishPath -Recurse | Format-Table FullName
+                exit 1
+            }
+        }
+
+    - name: Upload Specific DLLs to GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          bin/Release/net8.0-windows/publish/DanielLudwig.NINA.DiscordNotification.dll
+          bin/Release/net8.0-windows/publish/Discord.Net.Webhook.dll
+        generate_release_notes: true
+        draft: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
