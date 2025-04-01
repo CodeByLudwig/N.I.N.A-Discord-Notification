@@ -29,26 +29,51 @@ jobs:
     - name: Validate Published DLLs
       shell: pwsh
       run: |
-        $publishPath = "bin/Release/net8.0-windows/publish"
+        $publishDir = "bin/Release/net8.0-windows/publish"
         $requiredDlls = @(
-            "DanielLudwig.NINA.DiscordNotification.dll",
-            "Discord.Net.Webhook.dll"
+            "DiscordNotification.dll",
+            "Discord.Net.Webhook.dll",
+            "Discord.Net.Core.dll",
+            "Discord.Net.Rest.dll"
         )
         foreach ($dll in $requiredDlls) {
-            $dllPath = Join-Path $publishPath $dll
+            $dllPath = Join-Path $publishDir $dll
             if (-not (Test-Path $dllPath)) {
                 Write-Error "❌ Required DLL not found: $dllPath"
-                Get-ChildItem $publishPath -Recurse | Format-Table FullName
                 exit 1
             }
         }
 
-    - name: Upload Specific DLLs to GitHub Release
+    - name: Create ZIP Archive
+      shell: pwsh
+      run: |
+        $publishDir = "bin/Release/net8.0-windows/publish"
+        $zipPath = "bin/Release/DiscordNotification.zip"
+        
+        Compress-Archive `
+          -Path (
+            "$publishDir/DiscordNotification.dll",
+            "$publishDir/Discord.Net.Webhook.dll",
+            "$publishDir/Discord.Net.Core.dll",
+            "$publishDir/Discord.Net.Rest.dll"
+          ) `
+          -DestinationPath $zipPath `
+          -Force
+
+    - name: Validate ZIP Archive
+      shell: pwsh
+      run: |
+        $zipPath = "bin/Release/DiscordNotification.zip"
+        if (-not (Test-Path $zipPath)) {
+            Write-Error "❌ ZIP-Datei nicht gefunden: $zipPath"
+            exit 1
+        }
+
+    - name: Upload ZIP to GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          bin/Release/net8.0-windows/publish/DanielLudwig.NINA.DiscordNotification.dll
-          bin/Release/net8.0-windows/publish/Discord.Net.Webhook.dll
+          bin/Release/DiscordNotification.zip
         generate_release_notes: true
         draft: false
       env:
