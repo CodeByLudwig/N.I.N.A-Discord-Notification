@@ -1,5 +1,5 @@
 ﻿<ResourceDictionary
-    x:Class="DanielLudwig.NINA.DiscordNotification.Options"
+    x:Class="NINA.DiscordNotification.Options"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <!--  This data template will be displayed in N.I.N.A. on the options->plugin tab with the datacontext of the TestPlugin instance  -->

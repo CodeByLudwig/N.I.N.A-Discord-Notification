@@ -1,4 +1,4 @@
-﻿using DanielLudwig.NINA.DiscordNotification.Models;
+﻿using NINA.DiscordNotification.Models;
 using NINA.Core.Utility;
 using NINA.Image.Interfaces;
 using NINA.Profile.Interfaces;
@@ -8,7 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 
-namespace DanielLudwig.NINA.DiscordNotification.Helpers {
+namespace NINA.DiscordNotification.Helpers {
 	public static class ImageHelpers {
 		public static ImageData GetImageData(this ImageSavedEventArgs eventArgs) {
 			return new ImageData(eventArgs);

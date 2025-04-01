@@ -1,4 +1,4 @@
-﻿using DanielLudwig.NINA.DiscordNotification.Helpers;
+﻿using NINA.DiscordNotification.Helpers;
 using Discord;
 using Newtonsoft.Json;
 using NINA.Core.Model;
@@ -21,7 +21,7 @@ using NINA.Equipment.Interfaces.Mediator;
 using NINA.Profile.Interfaces;
 using System.Linq;
 
-namespace DanielLudwig.NINA.DiscordNotification.DiscordNotificationSequenceItems {
+namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 	[ExportMetadata("Name", "Discord Notification: Send message after exposures")]
 	[ExportMetadata("Description", "This trigger will send a message to discord after a given amount of exposures")]
 	[ExportMetadata("Icon", "DiscordSVG")]

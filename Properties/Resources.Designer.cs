@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace DanielLudwig.NINA.DiscordNotification.Properties {
+namespace NINA.DiscordNotification.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace DanielLudwig.NINA.DiscordNotification.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("DanielLudwig.NINA.DiscordNotification.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NINA.DiscordNotification.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

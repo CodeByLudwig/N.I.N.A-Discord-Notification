@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Media.Imaging;
 
-namespace DanielLudwig.NINA.DiscordNotification.Models {
+namespace NINA.DiscordNotification.Models {
 	public class ImageData {
 		public BitmapSource Image { get; }
 		public CameraParameter CameraParameter { get; }

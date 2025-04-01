@@ -1,9 +1,9 @@
-﻿using DanielLudwig.NINA.DiscordNotification.Discord;
+﻿using NINA.DiscordNotification.Discord;
 using NINA.Astrometry;
 using NINA.Sequencer;
 using NINA.Sequencer.Container;
 
-namespace DanielLudwig.NINA.DiscordNotification.Helpers {
+namespace NINA.DiscordNotification.Helpers {
 	public static class Helpers {
 		private static IDiscordWebhook _discordWebhook;
 		public static IDiscordWebhook DiscordWebhook {

@@ -6,7 +6,7 @@ using NINA.Core.Utility;
 using Discord;
 using System.Collections.Generic;
 
-namespace DanielLudwig.NINA.DiscordNotification.Discord {
+namespace NINA.DiscordNotification.Discord {
 
 	public class DiscordWebhook : IDiscordWebhook {
 

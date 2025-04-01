@@ -8,9 +8,9 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Settings = DanielLudwig.NINA.DiscordNotification.Properties.Settings;
+using Settings = NINA.DiscordNotification.Properties.Settings;
 
-namespace DanielLudwig.NINA.DiscordNotification {
+namespace NINA.DiscordNotification {
     [Export(typeof(IPluginManifest))]
     public class DiscordNotification : PluginBase, INotifyPropertyChanged {
         [ImportingConstructor]
