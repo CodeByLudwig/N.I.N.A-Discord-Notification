@@ -51,9 +51,9 @@ jobs:
         run: |
           Copy-Item "bin/Release/net8.0-windows/${{ env.PLUGIN_DLL_NAME }}.dll" "packages/${{ env.PLUGIN_NAME }}/${{ env.PLUGIN_DLL_NAME }}.dll" -Force
           Copy-Item "bin/Release/net8.0-windows/${{ env.PLUGIN_DLL_NAME }}.pdb" "packages/${{ env.PLUGIN_NAME }}/${{ env.PLUGIN_DLL_NAME }}.pdb" -Force
-  	  Copy-Item "bin/Release/net8.0-windows/Discord.Net.Core.dll" "packages/${{ env.PLUGIN_NAME }}/Discord.Net.Core.dll" -Force
-	  Copy-Item "bin/Release/net8.0-windows/Discord.Net.Rest.dll" "packages/${{ env.PLUGIN_NAME }}/Discord.Net.Rest.dll" -Force
-	  Copy-Item "bin/Release/net8.0-windows/Discord.Net.Webhook.dll" "packages/${{ env.PLUGIN_NAME }}/Discord.Net.Webhook.dll" -Force
+  	  Copy-Item "bin/Release/net8.0-windows/Discord.Net.Core.dll" -Force
+	  Copy-Item "bin/Release/net8.0-windows/Discord.Net.Rest.dll" -Force
+	  Copy-Item "bin/Release/net8.0-windows/Discord.Net.Webhook.dll" -Force
       
       - name: Create Plugin archives and manifests
         run: |
