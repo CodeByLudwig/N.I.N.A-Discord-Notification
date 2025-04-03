@@ -20,6 +20,7 @@ using System.IO;
 using NINA.Equipment.Interfaces.Mediator;
 using NINA.Profile.Interfaces;
 using System.Linq;
+using Google.Protobuf.WellKnownTypes;
 
 namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 	[ExportMetadata("Name", "Discord Notification: Send message after exposures")]
@@ -104,7 +105,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 					var parameters = new PrepareImageParameters(true, false);
 					var image = (await _imageDataFactory.RenderImage(imageData, _profileService.ActiveProfile.CameraSettings, parameters));
 					var fileName = (await _imagingMediator.PrepareImage(image, parameters, CancellationToken.None)).EncodeImage(filePath);
-					var extendedFields = imageData.GetEmbedFields().Select(f => new EmbedFieldBuilder() { Name = f.Key, Value = f.Value }); 
+					var extendedFields = imageData.GetEmbedFields().Where(f => f.Value != null && f.Value is String ? !string.IsNullOrEmpty(f.Value) : true).Select(f => new EmbedFieldBuilder() { Name = f.Key, Value = f.Value }); 
 
 					sendStopwatch.Start();
 					await _SendMessage(fileName, extendedFields);
