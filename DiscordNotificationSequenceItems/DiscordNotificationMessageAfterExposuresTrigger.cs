@@ -1,5 +1,5 @@
 ﻿using NINA.DiscordNotification.Helpers;
-using Discord;
+using NINA.DiscordNotification.Models;
 using Newtonsoft.Json;
 using NINA.Core.Model;
 using NINA.Core.Utility.Notification;
@@ -9,18 +9,12 @@ using NINA.Sequencer.Trigger;
 using NINA.WPF.Base.Interfaces.Mediator;
 using System;
 using NINA.Sequencer.Interfaces;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using NINA.Core.Utility;
-using System.Diagnostics;
 using NINA.Image.Interfaces;
-using System.IO;
 using NINA.Equipment.Interfaces.Mediator;
 using NINA.Profile.Interfaces;
-using System.Linq;
-using Google.Protobuf.WellKnownTypes;
 
 namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 	[ExportMetadata("Name", "Discord Notification: Send message after exposures")]
@@ -82,10 +76,13 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			_exposuresDone++;
 
 			if (_sendMessage) {
-				if (String.IsNullOrEmpty(Message)) {
+				if (string.IsNullOrEmpty(Message)) {
 					Notification.ShowWarning("Message is empty. No message has been sent.");
-				} else if(!SendImage) {
-					Task.Run(async () => await _SendMessage());
+				} else if (!SendImage) {
+					Task.Run(async () => await new Message(_imagingMediator, _imageDataFactory, _profileService) {
+						text = Message,
+						targetName = this.GetSequenceTarget()?.TargetName
+					}.Send());
 				}
 			}
 
@@ -98,29 +95,13 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			}
 
 			Task.Run(async () => {
-				try {
-					var imageData = e.GetImageData();
-					var sendStopwatch = new Stopwatch();
-					var filePath = Path.Combine([_profileService.ActiveProfile.ImageFileSettings.FilePath, $"image_{Guid.NewGuid()}.png"]);
-					var parameters = new PrepareImageParameters(true, false);
-					var image = (await _imageDataFactory.RenderImage(imageData, _profileService.ActiveProfile.CameraSettings, parameters));
-					var fileName = (await _imagingMediator.PrepareImage(image, parameters, CancellationToken.None)).EncodeImage(filePath);
-					var extendedFields = imageData.GetEmbedFields().Where(f => f.Value != null && f.Value is String ? !string.IsNullOrEmpty(f.Value) : true).Select(f => new EmbedFieldBuilder() { Name = f.Key, Value = f.Value }); 
-
-					sendStopwatch.Start();
-					await _SendMessage(fileName, extendedFields);
-					sendStopwatch.Stop();
-					if (filePath != null && File.Exists(filePath)) {
-						File.Delete(filePath);
-					}
-					Logger.Info($"Image send time={sendStopwatch.ElapsedMilliseconds}ms");
-				} catch (Exception ex) {
-					Logger.Error(ex);
-				}
+				await new Message(_imagingMediator, _imageDataFactory, _profileService) {
+					text = Message,
+					targetName = this.GetSequenceTarget()?.TargetName,
+					imageData = e.GetImageData(),
+				}.Send(_profileService.ActiveProfile.ImageFileSettings.FilePath);
 			});
 		}
-
-
 
 		public override bool ShouldTrigger(ISequenceItem previousItem, ISequenceItem nextItem) {
 			if (nextItem is IExposureItem) {
@@ -138,37 +119,6 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 
 		public override string ToString() {
 			return $"Category: {Category}, Item: {nameof(DiscordNotificationMessageAfterExposuresTrigger)}";
-		}
-
-		private async Task _SendMessage(string filePath = null, IEnumerable<EmbedFieldBuilder> extendedFields = null) {
-			var fields = _GetEmbedFields(extendedFields);
-
-			if (SendImage) {
-				if (filePath != null) {
-					await Helpers.Helpers.DiscordWebhook.SendFileMessage(filePath, Message, fields);
-					return;
-				} else {
-					Notification.ShowWarning("Image could not be found.");
-				}
-			}
-
-			await Helpers.Helpers.DiscordWebhook.SendMessage(Message, fields);
-		}
-
-		private IEnumerable<EmbedFieldBuilder> _GetEmbedFields(IEnumerable<EmbedFieldBuilder> extendedFields = null) {
-			var fields = new List<EmbedFieldBuilder>();
-			var field = new EmbedFieldBuilder();
-			var target = this.GetSequenceTarget();
-			if (target != null) {
-				field.Name = "Target";
-				field.Value = target.TargetName;
-				fields.Add(field);
-				if (extendedFields != null) {
-					fields.AddRange(extendedFields);
-				}
-			}
-
-			return fields.Count > 0 ? fields : null;
 		}
 	}
 }
