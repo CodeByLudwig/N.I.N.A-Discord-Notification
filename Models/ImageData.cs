@@ -27,7 +27,7 @@ namespace NINA.DiscordNotification.Models {
 			FileType = eventArgs.FileType;
 		}
 
-		public Dictionary<string, dynamic> GetEmbedFields() {
+		public Dictionary<string, object> GetExtendedImageData() {
 			var imageDataJson = JsonConvert.SerializeObject(new {
 				Gain = CameraParameter.Gain,
 				Temperatur = CameraParameter.Temperature,
@@ -37,7 +37,7 @@ namespace NINA.DiscordNotification.Models {
 				IsBayered = IsBayered,
 				Duration = Duration,
 			});
-			return JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(imageDataJson);
+			return JsonConvert.DeserializeObject<Dictionary<string, object>>(imageDataJson);
 		}
 	}
 }

@@ -51,7 +51,7 @@ using System.Runtime.InteropServices;
 //[Optional] An additional url to an example example screenshot of your plugin in action
 [assembly: AssemblyMetadata("AltScreenshotURL", "")]
 //[Optional] An in-depth description of your plugin
-[assembly: AssemblyMetadata("LongDescription", @"This plugin for N.I.N.A allows users to send notifications directly to Discord. It can be integrated as an introduction to the sequencer in N.I.N.A, providing seamless communication. Additionally, users can specify an image path, such as a folder where a live stacked image is stored, which will also be sent over Discord. This makes it easy to share updates and images in real-time during imaging sessions.")]
+[assembly: AssemblyMetadata("LongDescription", @"This plugin for N.I.N.A allows users to send notifications directly to Discord. It can be integrated as a trigger to the sequencer in N.I.N.A, providing seamless communication. Additionally, users can specify an image path, such as a folder where a live stacked image is stored, which will also be sent over Discord. This makes it easy to share updates and images in real-time during imaging sessions.")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from
