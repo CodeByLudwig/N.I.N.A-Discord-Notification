@@ -12,7 +12,7 @@
 
     <!--  The definition of the test instruction plugin style in the mini format on the imaging tab  -->
     <!--  The Key has to be defined as the fully qualified instruction name and the "_Mini" postfix  -->
-    <DataTemplate x:Key="NINA.DiscordNotification.DiscordNotificationSequenceItems.DiscordNotificationInstruction_Mini">
+    <DataTemplate x:Key="NINA.DiscordNotification.DiscordNotificationSequenceItems.DiscordNotificationMessageAfterExposuresTrigger_Mini">
         <mini:MiniSequenceItem>
             <mini:MiniSequenceItem.SequenceItemContent>
                 <StackPanel Orientation="Horizontal">
@@ -20,7 +20,7 @@
                         MinWidth="40"
                         Margin="5,0,0,0"
                         VerticalAlignment="Center"
-                        Text="{Binding Text}"
+                        Text="{Binding Message}"
                         TextAlignment="Right" />
                 </StackPanel>
             </mini:MiniSequenceItem.SequenceItemContent>
@@ -44,7 +44,18 @@
                         TextAlignment="Left" />
                     </DockPanel>
 
-                    <DockPanel LastChildFill="True" Margin="35,0,0,0">
+                    <DockPanel LastChildFill="True" Margin="30,0,0,0">
+                        <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Text="After Exposures" />
+
+                        <TextBox
+                          DockPanel.Dock="Left"
+                          MinWidth="40"
+                          Margin="10,0,0,0"
+                          Text="{Binding AfterExposures}"
+                          TextAlignment="Left" />
+                    </DockPanel>
+
+                    <DockPanel LastChildFill="True" Margin="30,0,0,0">
                         <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Text="Send Image?" />
 
                         <CheckBox
@@ -54,16 +65,6 @@
                        IsChecked="{Binding SendImage}" />
                     </DockPanel>
 
-                    <DockPanel LastChildFill="True" Margin="35,0,0,0">
-                        <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Text="After Exposures" />
-
-                        <TextBox
-                        DockPanel.Dock="Left"
-                        MinWidth="40"
-                        Margin="10,0,0,0"
-                        Text="{Binding AfterExposures}"
-                        TextAlignment="Left" />
-                    </DockPanel>
                 </StackPanel>
             </nina:SequenceBlockView.SequenceItemContent>
         </nina:SequenceBlockView>
