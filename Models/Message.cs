@@ -43,7 +43,7 @@ namespace NINA.DiscordNotification.Helpers {
 			try {
 				var sendStopwatch = new Stopwatch();
 				_filePath = Path.Combine([path, $"image_{Guid.NewGuid()}.png"]);
-				var image = (await _imageDataFactory.RenderImage(imageData, _profileService.ActiveProfile.CameraSettings, _imageParameters));
+				var image = (await _imageDataFactory.RenderImage(imageData, _profileService.ActiveProfile.CameraSettings));
 				(await _imagingMediator.PrepareImage(image, _imageParameters, CancellationToken.None)).EncodeImage(_filePath);
 
 				sendStopwatch.Start();
