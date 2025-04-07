@@ -11,12 +11,15 @@ using System.Threading;
 using Discord;
 using System.Collections.Generic;
 using NINA.Equipment.Interfaces.Mediator;
+using NINA.Core.Utility.Notification;
+using System.Drawing;
 
 namespace NINA.DiscordNotification.Helpers {
 	public class Message {
 		public string text { get; set; }
 		public ImageData imageData { get; set; }
 		public string targetName { get; set; }
+		public bool useLiveStackedImage { get; set; }
 
 		private string _filePath;
 		private IEnumerable<KeyValuePair<string, object>> _extendedFields {
@@ -42,9 +45,29 @@ namespace NINA.DiscordNotification.Helpers {
 		public async Task Send(string path) {
 			try {
 				var sendStopwatch = new Stopwatch();
-				_filePath = Path.Combine([path, $"image_{Guid.NewGuid()}.png"]);
-				var image = (await _imageDataFactory.RenderImage(imageData, _profileService.ActiveProfile.CameraSettings));
-				(await _imagingMediator.PrepareImage(image, _imageParameters, CancellationToken.None)).EncodeImage(_filePath);
+				if ((useLiveStackedImage)) {
+					_filePath = Path.Combine([path, $"image_{Guid.NewGuid()}.png"]);
+					var image = (await _imageDataFactory.RenderImage(imageData, _profileService.ActiveProfile.CameraSettings));
+					(await _imagingMediator.PrepareImage(image, _imageParameters, CancellationToken.None)).EncodeImage(_filePath);
+				} else {
+					_filePath = Path.Combine([Path.GetDirectoryName(path), $"image_{Guid.NewGuid()}.png"]);
+					Notification.ShowWarning("path." + path);
+
+
+					var file = File.ReadAllBytes(path);
+					Notification.ShowWarning("file." + file);
+
+					MemoryStream stream = new MemoryStream(file);
+					Notification.ShowWarning("stream." + stream);
+
+					Bitmap bitmap = new Bitmap(stream);
+					Notification.ShowWarning("bitmap." + bitmap);
+
+					bitmap.Save(_filePath);
+
+					Notification.ShowWarning("latestFile?.FullName." + bitmap.Width);
+
+				}
 
 				sendStopwatch.Start();
 				await Send();
@@ -54,6 +77,8 @@ namespace NINA.DiscordNotification.Helpers {
 				}
 				Logger.Info($"Image send time={sendStopwatch.ElapsedMilliseconds}ms");
 			} catch (Exception ex) {
+				Notification.ShowWarning("ex." + ex.Message);
+
 				Logger.Error(ex);
 			}
 		}
