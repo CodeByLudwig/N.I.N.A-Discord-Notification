@@ -50,13 +50,12 @@ namespace NINA.DiscordNotification.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ImageDirectory
-        {
+        public string LiveStackedImageDirectory {
             get {
-                return ((string)(this["ImageDirectory"]));
+                return ((string)(this["LiveStackedImageDirectory"]));
             }
             set {
-                this["ImageDirectory"] = value;
+                this["LiveStackedImageDirectory"] = value;
             }
         }
     }

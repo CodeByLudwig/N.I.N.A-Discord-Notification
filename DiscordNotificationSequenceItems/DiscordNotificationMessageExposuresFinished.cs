@@ -18,15 +18,16 @@ using NINA.Plugin.Interfaces;
 using System.Linq;
 using System.ComponentModel;
 using System.IO;
+using NINA.Sequencer.Interfaces.Mediator;
 
 namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
-	[ExportMetadata("Name", "Discord Notification: Send message after exposures")]
-	[ExportMetadata("Description", "This trigger will send a message to discord after a given amount of exposures")]
+	[ExportMetadata("Name", "Discord Notification: Send message after exposures are finished")]
+	[ExportMetadata("Description", "This trigger will send a message to discord when all expsorues are taken")]
 	[ExportMetadata("Icon", "DiscordSVG")]
 	[ExportMetadata("Category", "Discord Notification")]
 	[Export(typeof(ISequenceTrigger))]
 	[JsonObject(MemberSerialization.OptIn)]
-	public class DiscordNotificationMessageAfterExposuresTrigger : SequenceTrigger, ISubscriber, INotifyPropertyChanged {
+	public class DiscordNotificationMessageExposuresFinished : SequenceTrigger, ISubscriber, INotifyPropertyChanged {
 		[JsonProperty]
 		public string Message { get; set; } = "";
 
@@ -49,29 +50,27 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			get { return !string.IsNullOrEmpty(Properties.Settings.Default.LiveStackedImageDirectory) ? sendImage : false; }
 		}
 
-		[JsonProperty]
-		public int AfterExposures { get; set; } = 5;
-
-		private int _exposuresDone = 0;
 		private bool _sendMessage = false;
 		private bool _sendLiveStackedImageMessage = false;
 		private readonly IImageSaveMediator _imageSaveMediator;
+		private readonly ISequenceMediator _sequenceMediator;
 		private readonly IImageDataFactory _imageDataFactory;
 		private readonly IImagingMediator _imagingMediator;
 		private readonly IProfileService _profileService;
 		private readonly IMessageBroker _messageBroker;
 
 		[ImportingConstructor]
-		public DiscordNotificationMessageAfterExposuresTrigger(IImageSaveMediator imageSaveMediator, IImagingMediator imagingMediator, IImageDataFactory imageDataFactory, IProfileService profileService, IMessageBroker messageBroker) {
+		public DiscordNotificationMessageExposuresFinished(IImageSaveMediator imageSaveMediator, IImagingMediator imagingMediator, IImageDataFactory imageDataFactory, IProfileService profileService, IMessageBroker messageBroker, ISequenceMediator sequenceMediator) {
 			_imageSaveMediator = imageSaveMediator;
 			_imageDataFactory = imageDataFactory;
 			_imagingMediator = imagingMediator;
 			_profileService = profileService;
 			_messageBroker = messageBroker;
+			_sequenceMediator = sequenceMediator;
 		}
 
 		public override object Clone() {
-			return new DiscordNotificationMessageAfterExposuresTrigger(_imageSaveMediator, _imagingMediator, _imageDataFactory, _profileService, _messageBroker) {
+			return new DiscordNotificationMessageExposuresFinished(_imageSaveMediator, _imagingMediator, _imageDataFactory, _profileService, _messageBroker, _sequenceMediator) {
 				Icon = Icon,
 				Name = Name,
 				Category = Category,
@@ -84,7 +83,13 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			_messageBroker.Subscribe("Livestack_LivestackDockable_StackUpdateBroadcast", this);
 			_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
 			_imageSaveMediator.ImageSaved += ImagingMediator_ImageSaved;
+			_sequenceMediator.SequenceFinished += _sequenceMediator_SequenceFinished;
 			base.SequenceBlockInitialize();
+		}
+
+		private Task _sequenceMediator_SequenceFinished(object arg1, EventArgs arg2) {
+			Notification.ShowWarning("_sequenceMediator_SequenceFinished!" +arg1);
+			throw new NotImplementedException();
 		}
 
 		public async Task OnMessageReceived(IMessage message) {
@@ -110,7 +115,6 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		}
 
 		public override void SequenceBlockTeardown() {
-			_exposuresDone = 0;
 			_sendMessage = false;
 			_sendLiveStackedImageMessage = false;
 			_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
@@ -118,12 +122,11 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			base.SequenceBlockTeardown();
 		}
 
+	
 		public override Task Execute(ISequenceContainer context, IProgress<ApplicationStatus> progress, CancellationToken token) {
 			if (token.IsCancellationRequested) {
 				return Task.CompletedTask;
 			}
-
-			_exposuresDone++;
 
 			if (_sendMessage) {
 				if (string.IsNullOrEmpty(Message)) {
@@ -132,7 +135,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 					Task.Run(async () => await new Message(_imagingMediator, _imageDataFactory, _profileService) {
 						text = Message,
 						targetName = this.GetSequenceTarget()?.TargetName
-					}.Send());
+					}.Send()); 
 				} else if (UseLiveStackImage) {
 					_sendLiveStackedImageMessage = true;
 				}
@@ -142,7 +145,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		}
 
 		private void ImagingMediator_ImageSaved(object sender, ImageSavedEventArgs e) {
-			if (!_sendMessage || !SendImage || _sendLiveStackedImageMessage) {
+			if (!_sendMessage || !SendImage) {
 				return;
 			}
 
@@ -154,15 +157,11 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 				}.Send(_profileService.ActiveProfile.ImageFileSettings.FilePath);
 			});
 		}
-
+		
 		public override bool ShouldTrigger(ISequenceItem previousItem, ISequenceItem nextItem) {
-			if (nextItem is IExposureItem) {
-				if (previousItem != null && (_exposuresDone % AfterExposures) == 0) {
-					_sendMessage = true;
-					return true;
-				}
-
-				_exposuresDone++;
+			if (previousItem is IExposureItem && previousItem is not IExposureItem) {
+				_sendMessage = true;
+				return true;
 			}
 
 			_sendLiveStackedImageMessage = false;
@@ -171,7 +170,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		}
 
 		public override string ToString() {
-			return $"Category: {Category}, Item: {nameof(DiscordNotificationMessageAfterExposuresTrigger)}";
+			return $"Category: {Category}, Item: {nameof(DiscordNotificationMessageExposuresFinished)}";
 		}
 	}
 }
