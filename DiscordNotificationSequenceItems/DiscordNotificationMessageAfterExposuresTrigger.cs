@@ -106,7 +106,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 				text = Message,
 				targetName = this.GetSequenceTarget()?.TargetName,
 				useLiveStackedImage = true
-			}.Send(latestFile?.FullName);
+			}.Send(latestFile.FullName);
 		}
 
 		public override void SequenceBlockTeardown() {

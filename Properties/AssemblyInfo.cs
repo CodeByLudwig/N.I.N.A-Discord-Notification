@@ -1,4 +1,7 @@
-﻿using System.Reflection;
+﻿using Accord.Imaging.Filters;
+using Discord;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -7,8 +10,8 @@ using System.Runtime.InteropServices;
 
 // [MANDATORY] The assembly versioning
 //Should be incremented for each new release build of a plugin
-[assembly: AssemblyVersion("1.0.0.1")]
-[assembly: AssemblyFileVersion("1.0.0.1")]
+[assembly: AssemblyVersion("2.0.0.1")]
+[assembly: AssemblyFileVersion("2.0.0.1")]
 
 // [MANDATORY] The name of your plugin
 [assembly: AssemblyTitle("Discord Notification")]
@@ -47,11 +50,16 @@ using System.Runtime.InteropServices;
 //[Optional] The url to a featured logo that will be displayed in the plugin list next to the name
 [assembly: AssemblyMetadata("FeaturedImageURL", "")]
 //[Optional] A url to an example screenshot of your plugin in action
-[assembly: AssemblyMetadata("ScreenshotURL", "")]
+[assembly: AssemblyMetadata("ScreenshotURL", "https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/notification_settings.jpg")]
 //[Optional] An additional url to an example example screenshot of your plugin in action
-[assembly: AssemblyMetadata("AltScreenshotURL", "")]
+[assembly: AssemblyMetadata("AltScreenshotURL", "https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/livestacking_settins.jpg")]
 //[Optional] An in-depth description of your plugin
-[assembly: AssemblyMetadata("LongDescription", @"This plugin for N.I.N.A allows users to send notifications directly to Discord. It can be integrated as a trigger to the sequencer in N.I.N.A, providing seamless communication. Additionally, users can specify an image path, such as a folder where a live stacked image is stored, which will also be sent over Discord. This makes it easy to share updates and images in real-time during imaging sessions.")]
+[assembly: AssemblyMetadata("LongDescription", @"This plugin for N.I.N.A allows users to send notifications directly to Discord. It can be integrated as a trigger to the sequencer in N.I.N.A, providing seamless communication. Additionally, users can specify an image path, such as a folder where a live stacked image is stored, which will also be sent over Discord. This makes it easy to share updates and images in real-time during imaging sessions.
+
+## Settings
+
+To use the LiveStacked images feature, you need to install the 'LiveStack' plugin and configure the settings as shown in the screenshots below.")]
+
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from
