@@ -20,7 +20,7 @@ using System.ComponentModel;
 using System.IO;
 
 namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
-	[ExportMetadata("Name", "Discord Notification: Send message after exposures")]
+	[ExportMetadata("Name", "Send message after exposures")]
 	[ExportMetadata("Description", "This trigger will send a message to discord after a given amount of exposures")]
 	[ExportMetadata("Icon", "DiscordSVG")]
 	[ExportMetadata("Category", "Discord Notification")]
@@ -106,7 +106,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 				text = Message,
 				targetName = this.GetSequenceTarget()?.TargetName,
 				useLiveStackedImage = true
-			}.Send(latestFile?.FullName);
+			}.Send(latestFile.FullName);
 		}
 
 		public override void SequenceBlockTeardown() {

@@ -12,7 +12,7 @@ using Discord;
 using System.Collections.Generic;
 using NINA.Equipment.Interfaces.Mediator;
 using NINA.Core.Utility.Notification;
-using System.Drawing;
+using NINA.Image.FileFormat.FITS;
 
 namespace NINA.DiscordNotification.Helpers {
 	public class Message {
@@ -44,29 +44,18 @@ namespace NINA.DiscordNotification.Helpers {
 
 		public async Task Send(string path) {
 			try {
+				object image = null;
 				var sendStopwatch = new Stopwatch();
-				if ((useLiveStackedImage)) {
+				if (!useLiveStackedImage) {
 					_filePath = Path.Combine([path, $"image_{Guid.NewGuid()}.png"]);
-					var image = (await _imageDataFactory.RenderImage(imageData, _profileService.ActiveProfile.CameraSettings));
-					(await _imagingMediator.PrepareImage(image, _imageParameters, CancellationToken.None)).EncodeImage(_filePath);
+					image = (await _imageDataFactory.RenderImage(imageData, _profileService.ActiveProfile.CameraSettings));
 				} else {
 					_filePath = Path.Combine([Path.GetDirectoryName(path), $"image_{Guid.NewGuid()}.png"]);
-					Notification.ShowWarning("path." + path);
+					image = await FITS.Load(new Uri(path), false, _imageDataFactory, CancellationToken.None);
+				}
 
-
-					var file = File.ReadAllBytes(path);
-					Notification.ShowWarning("file." + file);
-
-					MemoryStream stream = new MemoryStream(file);
-					Notification.ShowWarning("stream." + stream);
-
-					Bitmap bitmap = new Bitmap(stream);
-					Notification.ShowWarning("bitmap." + bitmap);
-
-					bitmap.Save(_filePath);
-
-					Notification.ShowWarning("latestFile?.FullName." + bitmap.Width);
-
+				if (image != null) {
+					(await _imagingMediator.PrepareImage((IImageData)image, _imageParameters, CancellationToken.None)).EncodeImage(_filePath);
 				}
 
 				sendStopwatch.Start();
@@ -77,7 +66,7 @@ namespace NINA.DiscordNotification.Helpers {
 				}
 				Logger.Info($"Image send time={sendStopwatch.ElapsedMilliseconds}ms");
 			} catch (Exception ex) {
-				Notification.ShowWarning("ex." + ex.Message);
+				Notification.ShowWarning("ex." + ex);
 
 				Logger.Error(ex);
 			}

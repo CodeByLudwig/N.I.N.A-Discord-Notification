@@ -21,7 +21,7 @@ namespace NINA.DiscordNotification.Helpers {
 			_encode(filePath, renderedImage.Image);
 		}
 
-		public static void EncodeImage(this BitmapImage image, string filePath) {
+		public static void EncodeImage(this BitmapSource image, string filePath) {
 			_encode(filePath, image);
 		}
 
