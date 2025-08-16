@@ -1,5 +1,4 @@
 ﻿using NINA.DiscordNotification.Models;
-using NINA.Core.Utility;
 using NINA.Image.Interfaces;
 using NINA.Profile.Interfaces;
 using NINA.WPF.Base.Interfaces.Mediator;
@@ -8,8 +7,6 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using System.Windows.Media;
-using NINA.Image.ImageData;
-using System.Runtime.CompilerServices;
 
 namespace NINA.DiscordNotification.Helpers {
 	public static class ImageHelpers {
@@ -36,7 +33,7 @@ namespace NINA.DiscordNotification.Helpers {
 			return image;
 		}
 
-		private static  void _encode(string filePath, BitmapSource image) {
+		private static void _encode(string filePath, BitmapSource image) {
 			var encoder = new JpegBitmapEncoder();
 			encoder.Frames.Add(BitmapFrame.Create(new TransformedBitmap(image, new ScaleTransform(0.8, 0.7))));
 			if (Path.Exists(filePath)) {
