@@ -18,6 +18,7 @@ using NINA.Plugin.Interfaces;
 using System.Linq;
 using System.ComponentModel;
 using System.IO;
+using NINA.Core.Utility;
 
 namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 	[ExportMetadata("Name", "Send message after exposures")]
@@ -54,6 +55,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 
 		private int _exposuresDone = 0;
 		private bool _sendMessage = false;
+		private bool _initializing = false;
 		private bool _sendLiveStackedImageMessage = false;
 		private readonly IImageSaveMediator _imageSaveMediator;
 		private readonly IImageDataFactory _imageDataFactory;
@@ -84,6 +86,8 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			_messageBroker.Subscribe("Livestack_LivestackDockable_StackUpdateBroadcast", this);
 			_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
 			_imageSaveMediator.ImageSaved += ImagingMediator_ImageSaved;
+			_initializing = true;
+
 			base.SequenceBlockInitialize();
 		}
 
@@ -99,6 +103,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 
 			if (string.IsNullOrEmpty(latestFile?.FullName)) {
 				Notification.ShowWarning("No Image from LiveStack found!");
+				Logger.Error($"No Image from LiveStack found!");
 				return;
 			}
 
@@ -113,6 +118,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			_exposuresDone = 0;
 			_sendMessage = false;
 			_sendLiveStackedImageMessage = false;
+			_initializing = false;
 			_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
 			_messageBroker.Unsubscribe("Livestack_LivestackDockable_StackUpdateBroadcast", this);
 			base.SequenceBlockTeardown();
@@ -123,11 +129,10 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 				return Task.CompletedTask;
 			}
 
-			_exposuresDone++;
-
 			if (_sendMessage) {
 				if (string.IsNullOrEmpty(Message)) {
 					Notification.ShowWarning("Message is empty. No message has been sent.");
+					Logger.Error($"Message is empty. No message has been sent");
 				} else if (!SendImage && !UseLiveStackImage) {
 					Task.Run(async () => await new Message(_imagingMediator, _imageDataFactory, _profileService) {
 						text = Message,
@@ -136,6 +141,8 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 				} else if (UseLiveStackImage) {
 					_sendLiveStackedImageMessage = true;
 				}
+
+				Logger.Info($"Execute send discord notification -> with live stacked image:${_sendLiveStackedImageMessage}");
 			}
 
 			return Task.CompletedTask;
@@ -157,16 +164,21 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 
 		public override bool ShouldTrigger(ISequenceItem previousItem, ISequenceItem nextItem) {
 			if (nextItem is IExposureItem) {
-				if (previousItem != null && (_exposuresDone % AfterExposures) == 0) {
-					_sendMessage = true;
-					return true;
+				if (_initializing == false) {
+					_exposuresDone++;
+
+					if ((_exposuresDone % AfterExposures) == 0) {
+						_sendMessage = true;
+						return true;
+					}
 				}
 
-				_exposuresDone++;
+				_initializing = false;
 			}
 
 			_sendLiveStackedImageMessage = false;
 			_sendMessage = false;
+
 			return false;
 		}
 
