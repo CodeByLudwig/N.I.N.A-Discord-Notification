@@ -100,7 +100,7 @@ namespace NINA.DiscordNotification.Models {
 				}
 			}
 
-			return fields.Count > 0 ? fields : null;
+			return fields;
 		}
 	}
 }
