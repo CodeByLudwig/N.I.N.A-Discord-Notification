@@ -1,17 +1,15 @@
-﻿using NINA.DiscordNotification.Discord;
+﻿using Newtonsoft.Json.Linq;
 using NINA.Astrometry;
+using NINA.DiscordNotification.Discord;
 using NINA.Sequencer;
 using NINA.Sequencer.Container;
+using System.Security.Policy;
 
 namespace NINA.DiscordNotification.Helpers {
-	public static class Helpers {
-		private static IDiscordWebhook _discordWebhook;
+	public static class GeneralHelpers {
 		public static IDiscordWebhook DiscordWebhook {
 			get {
-				if (_discordWebhook == null) {
-					_discordWebhook = new DiscordWebhook(Properties.Settings.Default.DiscordWebhookUrl);
-				}
-				return _discordWebhook;
+				return new DiscordWebhook(Properties.Settings.Default.DiscordWebhookUrl);
 			}
 		}
 
@@ -19,7 +17,6 @@ namespace NINA.DiscordNotification.Helpers {
 			if (container?.Parent == null) {
 				return null;
 			}
-
 			return container is IDeepSkyObjectContainer targetContainer ? targetContainer.Target : container.Parent.GetSequenceTarget();
 		}
 
