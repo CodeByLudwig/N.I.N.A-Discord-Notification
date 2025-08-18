@@ -23,7 +23,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # In case you need more sub folders add these here
       - name: Prepare folders
