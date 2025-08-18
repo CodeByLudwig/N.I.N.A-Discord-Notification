@@ -21,7 +21,7 @@ namespace NINA.DiscordNotification.Helpers {
 		}
 
 		public static InputTarget GetSequenceTarget(this ISequenceEntity entity) {
-			return entity.Parent == null ? null : entity.Parent.GetSequenceTarget();
+			return entity.Parent?.GetSequenceTarget();
 		}
 	}
 }
