@@ -19,6 +19,7 @@ using System.Linq;
 using System.ComponentModel;
 using System.IO;
 using NINA.Core.Utility;
+using NINA.DiscordNotification.Models;
 
 namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 	[ExportMetadata("Name", "Send message after exposures")]
@@ -108,9 +109,9 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			}
 
 			await new Message(_imagingMediator, _imageDataFactory, _profileService) {
-				text = Message,
-				targetName = this.GetSequenceTarget()?.TargetName,
-				useLiveStackedImage = true
+				Text = Message,
+				TargetName = this.GetSequenceTarget()?.TargetName,
+				UseLiveStackedImage = true
 			}.Send(latestFile.FullName);
 		}
 
@@ -135,9 +136,9 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 					Logger.Error($"Message is empty. No message has been sent");
 				} else if (!SendImage && !UseLiveStackImage) {
 					Task.Run(async () => await new Message(_imagingMediator, _imageDataFactory, _profileService) {
-						text = Message,
-						targetName = this.GetSequenceTarget()?.TargetName
-					}.Send());
+						Text = Message,
+						TargetName = this.GetSequenceTarget()?.TargetName
+					}.Send(), token);
 				} else if (UseLiveStackImage) {
 					_sendLiveStackedImageMessage = true;
 				}
@@ -155,9 +156,9 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 
 			Task.Run(async () => {
 				await new Message(_imagingMediator, _imageDataFactory, _profileService) {
-					text = Message,
-					targetName = this.GetSequenceTarget()?.TargetName,
-					imageData = e.GetImageData(),
+					Text = Message,
+					TargetName = this.GetSequenceTarget()?.TargetName,
+					ImageData = e.GetImageData(),
 				}.Send(_profileService.ActiveProfile.ImageFileSettings.FilePath);
 			});
 		}

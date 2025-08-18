@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using NINA.Core.Enum;
+﻿using NINA.Core.Enum;
 using NINA.Image.ImageData;
 using NINA.Image.Interfaces;
 using NINA.WPF.Base.Interfaces.Mediator;
@@ -19,7 +18,7 @@ namespace NINA.DiscordNotification.Models {
 
 		public ImageData(ImageSavedEventArgs eventArgs) {
 			Image = eventArgs.Image;
-			CameraParameter= eventArgs.MetaData.Camera;
+			CameraParameter = eventArgs.MetaData.Camera;
 			StarDetectionAnalysis = eventArgs.StarDetectionAnalysis;
 			PathToImage = eventArgs.PathToImage;
 			IsBayered = eventArgs.IsBayered;
@@ -28,16 +27,17 @@ namespace NINA.DiscordNotification.Models {
 		}
 
 		public Dictionary<string, object> GetExtendedImageData() {
-			var imageDataJson = JsonConvert.SerializeObject(new {
-				Gain = CameraParameter.Gain,
-				Temperatur = CameraParameter.Temperature,
-				Binning = CameraParameter.Binning,
-				HFR = StarDetectionAnalysis.HFR,
-				DetectedStars = StarDetectionAnalysis.DetectedStars,
-				IsBayered = IsBayered,
-				Duration = Duration,
-			});
-			return JsonConvert.DeserializeObject<Dictionary<string, object>>(imageDataJson);
+			var dict = new Dictionary<string, object>
+			{
+				{ "Gain", CameraParameter.Gain },
+				{ "Temperature", CameraParameter.Temperature },
+				{ "Binning", CameraParameter.Binning },
+				{ "HFR", StarDetectionAnalysis.HFR },
+				{ "DetectedStars", StarDetectionAnalysis.DetectedStars },
+				{ "IsBayered", IsBayered },
+				{ "Duration", Duration }
+			};
+			return dict;
 		}
 	}
 }

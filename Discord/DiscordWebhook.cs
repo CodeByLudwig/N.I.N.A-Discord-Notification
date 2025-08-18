@@ -37,10 +37,11 @@ namespace NINA.DiscordNotification.Discord {
 		}
 
 		private EmbedBuilder _BuildEmbeds(string text, IEnumerable<EmbedFieldBuilder> fields) {
-			var embed = new EmbedBuilder();
-			embed.Timestamp = DateTime.UtcNow;
-			embed.Color = Color.Blue;
-			embed.Description = text;
+			var embed = new EmbedBuilder {
+				Timestamp = DateTime.UtcNow,
+				Color = Color.Blue,
+				Description = text
+			};
 
 			foreach (var field in fields) {
 				embed.AddField(field);
