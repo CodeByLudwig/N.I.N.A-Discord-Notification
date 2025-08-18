@@ -1,30 +1,53 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", ":dependencyDashboard"],
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard"
+  ],
   "timezone": "Europe/Berlin",
   "packageRules": [
     {
-      "matchUpdateTypes": ["patch"],
+      "matchUpdateTypes": [
+        "patch"
+      ],
       "groupName": "patch updates",
       "groupSlug": "patch-updates",
       "automerge": true,
       "automergeType": "branch"
     },
     {
-      "matchUpdateTypes": ["minor"],
+      "matchUpdateTypes": [
+        "minor"
+      ],
       "groupName": "minor updates",
       "groupSlug": "minor-updates"
     },
     {
-      "matchManagers": ["npm"],
-      "assignees": ["CodeByLudiwg"],
-      "reviewers": ["CodeByLudiwg"],
-      "matchUpdateTypes": ["minor", "major", "patch"]
+      "matchManagers": [
+        "npm"
+      ],
+      "assignees": [
+        "CodeByLudiwg"
+      ],
+      "reviewers": [
+        "CodeByLudiwg"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "major",
+        "patch"
+      ]
     }
   ],
   "npm": {
-    "fileMatch": ["^package\\.json$"]
+    "managerFilePatterns": [
+      "/^package\\.json$/"
+    ]
   },
-  "schedule": ["before 11am on the first day of the month"],
-  "baseBranches": ["develop"]
+  "schedule": [
+    "before 11am on the first day of the month"
+  ],
+  "baseBranchPatterns": [
+    "develop"
+  ]
 }
