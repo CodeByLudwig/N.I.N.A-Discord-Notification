@@ -25,7 +25,7 @@ namespace NINA.DiscordNotification.Models {
 				return ImageData?.GetExtendedImageData();
 			}
 		}
-		private readonly PrepareImageParameters _imageParameters = new PrepareImageParameters(true, false);
+		private readonly PrepareImageParameters _imageParameters = new(true, false);
 		private readonly IImageDataFactory _imageDataFactory;
 		private readonly IImagingMediator _imagingMediator;
 		private readonly IProfileService _profileService;
@@ -79,7 +79,7 @@ namespace NINA.DiscordNotification.Models {
 			}
 		}
 
-		private IEnumerable<EmbedFieldBuilder> _GetEmbedFields() {
+		private List<EmbedFieldBuilder> _GetEmbedFields() {
 			var fields = new List<EmbedFieldBuilder>();
 
 			if (!string.IsNullOrEmpty(TargetName)) {
