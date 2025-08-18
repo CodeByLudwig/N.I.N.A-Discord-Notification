@@ -44,7 +44,10 @@ namespace NINA.DiscordNotification.Discord {
 			};
 
 			foreach (var field in fields) {
-				embed.AddField(field);
+			if (fields != null) {
+				foreach (var field in fields) {
+					embed.AddField(field);
+				}
 			}
 
 			return embed;
