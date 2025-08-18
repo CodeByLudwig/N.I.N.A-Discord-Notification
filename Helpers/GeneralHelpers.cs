@@ -1,9 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
-using NINA.Astrometry;
+﻿using NINA.Astrometry;
 using NINA.DiscordNotification.Discord;
 using NINA.Sequencer;
 using NINA.Sequencer.Container;
-using System.Security.Policy;
 
 namespace NINA.DiscordNotification.Helpers {
 	public static class GeneralHelpers {
