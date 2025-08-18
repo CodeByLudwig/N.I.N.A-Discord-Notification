@@ -1,4 +1,3 @@
-﻿using NINA.Astrometry;
 using NINA.DiscordNotification.Discord;
 using NINA.Sequencer;
 using NINA.Sequencer.Container;
