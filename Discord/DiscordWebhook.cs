@@ -5,6 +5,8 @@ using System;
 using NINA.Core.Utility;
 using Discord;
 using System.Collections.Generic;
+using Discord.Net;
+using System.IO;
 
 namespace NINA.DiscordNotification.Discord {
 
@@ -31,6 +33,19 @@ namespace NINA.DiscordNotification.Discord {
 		public async Task SendFileMessage(string filePath, string text = null, IEnumerable<EmbedFieldBuilder> fields = null) {
 			try {
 				await _discordWebhookClient.SendFileAsync(filePath, fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
+			} catch (HttpException ex) {
+				if (ex.DiscordCode == DiscordErrorCode.RequestEntityTooLarge) {
+					var fileSize = new FileInfo(filePath).Length / (1024.0 * 1024.0);
+					var errorField = new List<EmbedFieldBuilder>();
+					errorField.AddRange(fields);
+					errorField.Add(
+						new EmbedFieldBuilder {
+							Name = "Image",
+							Value = $"The file is too large ({Math.Round(fileSize, 2)} MB)"
+						});
+					await _discordWebhookClient.SendMessageAsync(fields == null ? text : null, embeds: errorField != null ? [_BuildEmbeds(text, errorField).Build()] : null);
+				}
+				Logger.Error($"Could not send file message", ex);
 			} catch (Exception ex) {
 				Logger.Error($"Could not send file message", ex);
 			}

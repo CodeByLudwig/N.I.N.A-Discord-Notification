@@ -1,5 +1,9 @@
 ﻿# Discord Notification
 
+## 2.0.0.3
+- Bugfix: fixed entity too large exception from discord
+- Feature: added scaling property for images
+
 ## 2.0.0.2
 - Bugfix: fixed counting of exposures in when using take many exposures instruction
 

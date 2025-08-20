@@ -42,10 +42,10 @@ namespace NINA.DiscordNotification.Models {
 				var sendStopwatch = new Stopwatch();
 
 				if (!UseLiveStackedImage) {
-					_filePath = Path.Combine(path, $"image_{Guid.NewGuid()}.png");
+					_filePath = Path.Combine(path, $"image_{Guid.NewGuid()}.jpeg");
 					image = await _imageDataFactory.RenderImage(ImageData, _profileService.ActiveProfile.CameraSettings);
 				} else {
-					_filePath = Path.Combine(Path.GetDirectoryName(path), $"image_{Guid.NewGuid()}.png");
+					_filePath = Path.Combine(Path.GetDirectoryName(path), $"image_{Guid.NewGuid()}.jpeg");
 					image = await FITS.Load(new Uri(path), false, _imageDataFactory, CancellationToken.None);
 				}
 

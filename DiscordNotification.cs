@@ -42,6 +42,17 @@ namespace NINA.DiscordNotification {
 			}
 		}
 
+		public int ImageScaleFactor {
+			get {
+				return Settings.Default.ImageScaleFactor;
+			}
+			set {
+				Settings.Default.ImageScaleFactor = value;
+				CoreUtil.SaveSettings(Settings.Default);
+				RaisePropertyChanged();
+			}
+		}
+
 		public string LiveStackedImageDirectory {
 			get {
 				return Settings.Default.LiveStackedImageDirectory;
