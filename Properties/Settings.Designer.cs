@@ -58,5 +58,17 @@ namespace NINA.DiscordNotification.Properties {
                 this["LiveStackedImageDirectory"] = value;
             }
         }
-    }
+
+		[global::System.Configuration.UserScopedSettingAttribute()]
+		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+		[global::System.Configuration.DefaultSettingValueAttribute("90")]
+		public int ImageScaleFactor {
+			get {
+				return ((int)(this["ImageScaleFactor"]));
+			}
+			set {
+				this["ImageScaleFactor"] = value;
+			}
+		}
+	}
 }

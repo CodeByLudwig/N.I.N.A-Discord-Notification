@@ -13,6 +13,10 @@
                 <TextBlock Width="200" Text="Discord Webhook URL" />
                 <TextBox Margin="10,0,0,0" MinWidth="400" Text="{Binding DiscordWebhookUrl}" />
             </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Margin="0,10,0,0" Width="200" Text="Image Scale Factor (%)" />
+                <TextBox Margin="10,10,0,0" MinWidth="150" Text="{Binding ImageScaleFactor}" />
+            </StackPanel>
             <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                 <TextBlock Width="200" Text="LiveStacked Image Directory" />
                 <StackPanel

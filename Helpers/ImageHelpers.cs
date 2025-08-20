@@ -35,7 +35,8 @@ namespace NINA.DiscordNotification.Helpers {
 
 		private static void _encode(BitmapSource image, string filePath) {
 			var encoder = new JpegBitmapEncoder();
-			encoder.Frames.Add(BitmapFrame.Create(new TransformedBitmap(image, new ScaleTransform(0.8, 0.7))));
+			double scaleFactor = (double)Properties.Settings.Default.ImageScaleFactor / 100;
+			encoder.Frames.Add(BitmapFrame.Create(new TransformedBitmap(image, new ScaleTransform(scaleFactor, scaleFactor))));
 			if (File.Exists(filePath)) {
 				throw new IOException($"{filePath} already exists");
 			}
