@@ -1,5 +1,8 @@
 ﻿# Discord Notification
 
+## 2.0.0.4
+- Bugfix: fixed trigger when using OSC cameras
+
 ## 2.0.0.3
 - Bugfix: fixed entity too large exception from discord
 - Feature: added scaling property for images

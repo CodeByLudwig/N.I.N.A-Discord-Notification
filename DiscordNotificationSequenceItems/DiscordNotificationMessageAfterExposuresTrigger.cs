@@ -58,6 +58,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		private bool _sendMessage = false;
 		private bool _initializing = false;
 		private bool _sendLiveStackedImageMessage = false;
+		private bool _messageReceive = false;
 		private readonly IImageSaveMediator _imageSaveMediator;
 		private readonly IImageDataFactory _imageDataFactory;
 		private readonly IImagingMediator _imagingMediator;
@@ -93,9 +94,11 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		}
 
 		public async Task OnMessageReceived(IMessage message) {
-			if (!UseLiveStackImage || !_sendLiveStackedImageMessage) {
+			if (!UseLiveStackImage || !_sendLiveStackedImageMessage || !_messageReceive) {
 				return;
 			}
+
+			_messageReceive = false;
 
 			var targetName = this.GetSequenceTarget()?.TargetName;
 			var latestFile = new DirectoryInfo(Properties.Settings.Default.LiveStackedImageDirectory).GetFiles()
@@ -120,6 +123,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			_sendMessage = false;
 			_sendLiveStackedImageMessage = false;
 			_initializing = false;
+			_messageReceive = false;
 			_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
 			_messageBroker.Unsubscribe("Livestack_LivestackDockable_StackUpdateBroadcast", this);
 			base.SequenceBlockTeardown();
@@ -140,6 +144,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 						TargetName = this.GetSequenceTarget()?.TargetName
 					}.Send(), token);
 				} else if (UseLiveStackImage) {
+					_messageReceive = true;
 					_sendLiveStackedImageMessage = true;
 				}
 

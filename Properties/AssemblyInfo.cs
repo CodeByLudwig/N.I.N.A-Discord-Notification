@@ -10,8 +10,8 @@ using System.Runtime.InteropServices;
 
 // [MANDATORY] The assembly versioning
 //Should be incremented for each new release build of a plugin
-[assembly: AssemblyVersion("2.0.0.3")]
-[assembly: AssemblyFileVersion("2.0.0.3")]
+[assembly: AssemblyVersion("2.0.0.4")]
+[assembly: AssemblyFileVersion("2.0.0.4")]
 
 // [MANDATORY] The name of your plugin
 [assembly: AssemblyTitle("Discord Notification")]
@@ -48,17 +48,17 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyMetadata("ChangelogURL", "https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/CHANGELOG.md")]
 
 //[Optional] The url to a featured logo that will be displayed in the plugin list next to the name
-[assembly: AssemblyMetadata("FeaturedImageURL", "")]
+[assembly: AssemblyMetadata("FeaturedImageURL", "https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/notification_1.png?raw=true")]
 //[Optional] A url to an example screenshot of your plugin in action
-[assembly: AssemblyMetadata("ScreenshotURL", "https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/notification_settings.jpg")]
+[assembly: AssemblyMetadata("ScreenshotURL", "https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/notification_settings.png?raw=true")]
 //[Optional] An additional url to an example example screenshot of your plugin in action
-[assembly: AssemblyMetadata("AltScreenshotURL", "https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/livestacking_settins.jpg")]
+[assembly: AssemblyMetadata("AltScreenshotURL", "https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/livestacking_settins.png?raw=true")]
 //[Optional] An in-depth description of your plugin
 [assembly: AssemblyMetadata("LongDescription", @"This plugin for N.I.N.A allows users to send notifications directly to Discord. It can be integrated as a trigger to the sequencer in N.I.N.A, providing seamless communication. Additionally, users can specify an image path, such as a folder where a live stacked image is stored, which will also be sent over Discord. This makes it easy to share updates and images in real-time during imaging sessions.
 
 ## Settings
 
-To use the LiveStacked images feature, you need to install the 'LiveStack' plugin and configure the settings as shown in the screenshots below.")]
+To use the LiveStack image feature, you need to install the 'LiveStack' plugin and configure the settings as shown in the screenshots below.")]
 
 
 // Setting ComVisible to false makes the types in this assembly not visible
