@@ -4,5 +4,5 @@ This plugin for N.I.N.A allows users to send notifications directly to Discord. 
 
 To use the LiveStack image feature, you need to install the 'LiveStack' plugin and configure the settings as shown in the screenshots below.
 ![notification_settings](https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/livestacking_settins.png)
-![livestacking_settins](https://github.com/user-attachments/assets/99463f14-fdb3-4eaa-8181-0cff2180cd77)
+![livestacking_settins](https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/notification_settings.png)
 
