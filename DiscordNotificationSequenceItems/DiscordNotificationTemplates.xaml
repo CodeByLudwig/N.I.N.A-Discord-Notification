@@ -28,6 +28,21 @@
         </mini:MiniSequenceItem>
     </DataTemplate>
 
+    <DataTemplate x:Key="NINA.DiscordNotification.DiscordNotificationSequenceItems.DiscordNotificationThreadAfterExposuresTrigger_Mini">
+        <mini:MiniSequenceItem>
+            <mini:MiniSequenceItem.SequenceItemContent>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                    MinWidth="40"
+                    Margin="5,0,0,0"
+                    VerticalAlignment="Center"
+                    Text="{Binding Message}"
+                    TextAlignment="Right" />
+                </StackPanel>
+            </mini:MiniSequenceItem.SequenceItemContent>
+        </mini:MiniSequenceItem>
+    </DataTemplate>
+
     <!--  The definition of the plugin test condition style  -->
     <!--  The DataType has to be defined as the instruction in context  -->
     <DataTemplate DataType="{x:Type local:DiscordNotificationMessageAfterExposuresTrigger}">
@@ -74,6 +89,56 @@
                             VerticalAlignment="Center"
                             IsChecked="{Binding UseLiveStackImage}" />
                             </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </nina:SequenceBlockView.SequenceItemContent>
+        </nina:SequenceBlockView>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type local:DiscordNotificationThreadAfterExposuresTrigger}">
+        <nina:SequenceBlockView>
+            <nina:SequenceBlockView.SequenceItemContent>
+                <StackPanel Margin="5,0,0,0" Orientation="Horizontal">
+                    <DockPanel LastChildFill="True">
+                        <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Text="Message" />
+
+                        <TextBox
+                       DockPanel.Dock="Left"
+                       MinWidth="130"
+                       Margin="10,0,0,0"
+                       Text="{Binding Message}"
+                       TextAlignment="Left" />
+                    </DockPanel>
+
+                    <DockPanel LastChildFill="True" Margin="10,0,0,0">
+                        <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Text="After Exposures" />
+
+                        <TextBox
+                         DockPanel.Dock="Left"
+                         MinWidth="40"
+                         Margin="10,0,0,0"
+                         Text="{Binding AfterExposures}"
+                         TextAlignment="Left" />
+                    </DockPanel>
+
+                    <DockPanel LastChildFill="True" Margin="10,0,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock  VerticalAlignment="Center" Text="Send Image?" />
+                            <CheckBox
+                           MinWidth="40"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center"
+                           IsChecked="{Binding SendImage}" />
+                        </StackPanel>
+
+                        <StackPanel  Margin="10,0,0,0" Orientation="Horizontal" Visibility="{Binding ShowUseLiveStackImage, Converter={StaticResource VisibilityConverter}}" >
+                            <TextBlock  VerticalAlignment="Center" Text="Use LiveStack Image?" />
+                            <CheckBox
+                           MinWidth="40"
+                           Margin="10,0,0,0"
+                           VerticalAlignment="Center"
+                           IsChecked="{Binding UseLiveStackImage}" />
+                        </StackPanel>
                     </DockPanel>
                 </StackPanel>
             </nina:SequenceBlockView.SequenceItemContent>

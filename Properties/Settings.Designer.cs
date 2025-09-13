@@ -8,6 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+using Discord;
+using NINA.Core.Utility;
+using System.Collections.Generic;
+
 namespace NINA.DiscordNotification.Properties {
     
     
@@ -47,7 +51,43 @@ namespace NINA.DiscordNotification.Properties {
             }
         }
 
-        [global::System.Configuration.UserScopedSettingAttribute()]
+		[global::System.Configuration.UserScopedSettingAttribute()]
+		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+		[global::System.Configuration.DefaultSettingValueAttribute("")]
+		public string DiscordBotToken {
+			get {
+				return ((string)(this["DiscordBotToken"]));
+			}
+			set {
+				this["DiscordBotToken"] = value;
+			}
+		}
+
+		[global::System.Configuration.UserScopedSettingAttribute()]
+		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+		[global::System.Configuration.DefaultSettingValueAttribute("")]
+		public string DiscordChannelId {
+			get {
+				return ((string)(this["DiscordChannelId"]));
+			}
+			set {
+				this["DiscordChannelId"] = value;
+			}
+		}
+
+		[global::System.Configuration.UserScopedSettingAttribute()]
+		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+		[global::System.Configuration.DefaultSettingValueAttribute("OneWeek")]
+		public string ArchiveDuration {
+			get {
+				return ((string)(this["ArchiveDuration"]));
+			}
+			set {
+				this["ArchiveDuration"] = value;
+			}
+		}
+
+		[global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string LiveStackedImageDirectory {

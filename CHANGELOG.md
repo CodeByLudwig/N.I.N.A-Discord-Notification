@@ -1,5 +1,8 @@
 ﻿# Discord Notification
 
+## 2.0.0.5
+- Feature: Added trigger to create a thread named after the target and send a message to Discord after a specified number of exposures
+
 ## 2.0.0.4
 - Bugfix: fixed trigger when using OSC cameras
 

@@ -1,10 +1,12 @@
-﻿using Microsoft.Win32;
+﻿using Discord;
+using Microsoft.Win32;
 using NINA.Core.Utility;
 using NINA.Plugin;
 using NINA.Plugin.Interfaces;
 using NINA.Profile.Interfaces;
 using NINA.WPF.Base.Interfaces.Mediator;
 using NINA.WPF.Base.Interfaces.ViewModel;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.IO;
@@ -25,10 +27,22 @@ namespace NINA.DiscordNotification {
 			}
 
 			OpenLiveStackedImageDirectoryDialogCommand = new GalaSoft.MvvmLight.Command.RelayCommand(OpenLiveStackedImageDirectoryDialog);
+			_InitializeArchiveDurations();
 		}
 
 		public override Task Teardown() {
 			return base.Teardown();
+		}
+
+		private void _InitializeArchiveDurations() {
+			ArchiveDurations = [
+				new KeyValuePair<ThreadArchiveDuration, string>(ThreadArchiveDuration.OneHour, "One Hour"),
+				new KeyValuePair<ThreadArchiveDuration, string>(ThreadArchiveDuration.OneDay, "One Day"),
+				new KeyValuePair<ThreadArchiveDuration, string>(ThreadArchiveDuration.ThreeDays, "Three Days"),
+				new KeyValuePair<ThreadArchiveDuration, string>(ThreadArchiveDuration.OneWeek, "One Week"),
+			];
+
+			RaisePropertyChanged(nameof(ArchiveDurations));
 		}
 
 		public string DiscordWebhookUrl {
@@ -37,6 +51,50 @@ namespace NINA.DiscordNotification {
 			}
 			set {
 				Settings.Default.DiscordWebhookUrl = value;
+				CoreUtil.SaveSettings(Settings.Default);
+				RaisePropertyChanged();
+			}
+		}
+
+		public string DiscordBotToken {
+			get {
+				return Settings.Default.DiscordBotToken;
+			}
+			set {
+				Settings.Default.DiscordBotToken = value;
+				CoreUtil.SaveSettings(Settings.Default);
+				RaisePropertyChanged();
+			}
+		}
+
+		public string DiscordChannelId {
+			get {
+				return Settings.Default.DiscordChannelId;
+			}
+			set {
+				Settings.Default.DiscordChannelId = value;
+				CoreUtil.SaveSettings(Settings.Default);
+				RaisePropertyChanged();
+			}
+		}
+
+		private AsyncObservableCollection<KeyValuePair<ThreadArchiveDuration, string>> archiveDurations;
+		public AsyncObservableCollection<KeyValuePair<ThreadArchiveDuration, string>> ArchiveDurations {
+			get {
+				return archiveDurations;
+			}
+			set {
+				archiveDurations = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		public string ArchiveDuration {
+			get {
+				return Settings.Default.ArchiveDuration;
+			}
+			set {
+				Settings.Default.ArchiveDuration = value;
 				CoreUtil.SaveSettings(Settings.Default);
 				RaisePropertyChanged();
 			}
