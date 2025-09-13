@@ -19,6 +19,8 @@ namespace NINA.DiscordNotification.Models {
 		public ImageData ImageData { get; set; }
 		public string TargetName { get; set; }
 		public bool UseLiveStackedImage { get; set; }
+		public IThreadChannel? Thread { get; set; }
+
 		private string _filePath;
 		private IEnumerable<KeyValuePair<string, object>> _extendedFields {
 			get {
@@ -69,10 +71,10 @@ namespace NINA.DiscordNotification.Models {
 		public async Task Send() {
 			try {
 				if (_filePath != null) {
-					await GeneralHelpers.DiscordWebhook.SendFileMessage(_filePath, Text, _GetEmbedFields());
+					await GeneralHelpers.DiscordWebhook.SendFileMessage(_filePath, Text, _GetEmbedFields(), Thread);
 					return;
 				}
-				await GeneralHelpers.DiscordWebhook.SendMessage(Text, _GetEmbedFields());
+				await GeneralHelpers.DiscordWebhook.SendMessage(Text, _GetEmbedFields(), Thread);
 			} catch (Exception ex) {
 				Notification.ShowWarning("Exception: " + ex);
 				Logger.Error(ex);

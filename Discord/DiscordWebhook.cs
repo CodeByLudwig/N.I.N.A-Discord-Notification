@@ -22,17 +22,33 @@ namespace NINA.DiscordNotification.Discord {
 			}
 		}
 
-		public async Task SendMessage(string text = null, IEnumerable<EmbedFieldBuilder> fields = null) {
+		public async Task SendMessage(string text = null, IEnumerable<EmbedFieldBuilder> fields = null, IThreadChannel thread = null) {
+			await _SendMessage(text, fields, thread);
+		}
+
+		public async Task SendFileMessage(string filePath, string text = null, IEnumerable<EmbedFieldBuilder> fields = null, IThreadChannel thread = null) {
+			await _SendFile(filePath, text, fields, thread);
+		}
+
+		private async Task _SendMessage(string text, IEnumerable<EmbedFieldBuilder> fields, IThreadChannel thread = null) {
 			try {
-				await _discordWebhookClient.SendMessageAsync(fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
+				if (thread != null) {
+					await thread.SendMessageAsync(fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
+				} else {
+					await _discordWebhookClient.SendMessageAsync(fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
+				}
 			} catch (Exception ex) {
 				Logger.Error($"Could not send message", ex);
 			}
 		}
 
-		public async Task SendFileMessage(string filePath, string text = null, IEnumerable<EmbedFieldBuilder> fields = null) {
+		private async Task _SendFile(string filePath, string text, IEnumerable<EmbedFieldBuilder> fields, IThreadChannel thread = null) {
 			try {
-				await _discordWebhookClient.SendFileAsync(filePath, fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
+				if (thread != null) {
+					await thread.SendFileAsync(filePath, fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
+				} else {
+					await _discordWebhookClient.SendFileAsync(filePath, fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
+				}
 			} catch (HttpException ex) {
 				if (ex.DiscordCode == DiscordErrorCode.RequestEntityTooLarge) {
 					var fileSize = new FileInfo(filePath).Length / (1024.0 * 1024.0);
@@ -43,7 +59,11 @@ namespace NINA.DiscordNotification.Discord {
 							Name = "Image",
 							Value = $"The file is too large ({Math.Round(fileSize, 2)} MB)"
 						});
-					await _discordWebhookClient.SendMessageAsync(fields == null ? text : null, embeds: errorField != null ? [_BuildEmbeds(text, errorField).Build()] : null);
+					if (thread != null) {
+						await thread.SendMessageAsync(fields == null ? text : null, embeds: errorField != null ? [_BuildEmbeds(text, errorField).Build()] : null);
+					} else {
+						await _discordWebhookClient.SendMessageAsync(fields == null ? text : null, embeds: errorField != null ? [_BuildEmbeds(text, errorField).Build()] : null);
+					}
 				}
 				Logger.Error($"Could not send file message", ex);
 			} catch (Exception ex) {

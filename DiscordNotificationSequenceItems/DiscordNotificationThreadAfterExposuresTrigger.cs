@@ -16,13 +16,13 @@ using NINA.Plugin.Interfaces;
 using System.ComponentModel;
 
 namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
-	[ExportMetadata("Name", "Send message after exposures")]
-	[ExportMetadata("Description", "This trigger will send a message to Discord after a specified number of exposures")]
+	[ExportMetadata("Name", "Create thread and send message after exposures")]
+	[ExportMetadata("Description", "This trigger will create a thread named after the target and send a message to Discord after a specified number of exposures")]
 	[ExportMetadata("Icon", "DiscordSVG")]
 	[ExportMetadata("Category", "Discord Notification")]
 	[Export(typeof(ISequenceTrigger))]
 	[JsonObject(MemberSerialization.OptIn)]
-	public class DiscordNotificationMessageAfterExposuresTrigger : SequenceTrigger, ISubscriber, INotifyPropertyChanged {
+	public class DiscordNotificationThreadAfterExposuresTrigger : SequenceTrigger, ISubscriber, INotifyPropertyChanged {
 		string message = "";
 		[JsonProperty]
 		public string Message {
@@ -77,7 +77,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		private readonly DiscordTrigger _discordTrigger;
 
 		[ImportingConstructor]
-		public DiscordNotificationMessageAfterExposuresTrigger(IImageSaveMediator imageSaveMediator, IImagingMediator imagingMediator, IImageDataFactory imageDataFactory, IProfileService profileService, IMessageBroker messageBroker) {
+		public DiscordNotificationThreadAfterExposuresTrigger(IImageSaveMediator imageSaveMediator, IImagingMediator imagingMediator, IImageDataFactory imageDataFactory, IProfileService profileService, IMessageBroker messageBroker) {
 			_imageSaveMediator = imageSaveMediator;
 			_imageDataFactory = imageDataFactory;
 			_imagingMediator = imagingMediator;
@@ -87,7 +87,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		}
 
 		public override object Clone() {
-			return new DiscordNotificationMessageAfterExposuresTrigger(_imageSaveMediator, _imagingMediator, _imageDataFactory, _profileService, _messageBroker) {
+			return new DiscordNotificationThreadAfterExposuresTrigger(_imageSaveMediator, _imagingMediator, _imageDataFactory, _profileService, _messageBroker) {
 				Icon = Icon,
 				Name = Name,
 				Category = Category,
@@ -100,7 +100,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			_messageBroker.Subscribe("Livestack_LivestackDockable_StackUpdateBroadcast", this);
 			_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
 			_imageSaveMediator.ImageSaved += ImagingMediator_ImageSaved;
-			_discordTrigger.Initialize(Message, SendImage, UseLiveStackImage, AfterExposures, this.GetSequenceTarget()?.TargetName);
+			_discordTrigger.InitializeThread(Message, SendImage, UseLiveStackImage, AfterExposures, this.GetSequenceTarget()?.TargetName);
 
 			base.SequenceBlockInitialize();
 		}
@@ -135,7 +135,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		}
 
 		public override string ToString() {
-			return $"Category: {Category}, Item: {nameof(DiscordNotificationMessageAfterExposuresTrigger)}";
+			return $"Category: {Category}, Item: {nameof(DiscordNotificationThreadAfterExposuresTrigger)}";
 		}
 	}
 }
