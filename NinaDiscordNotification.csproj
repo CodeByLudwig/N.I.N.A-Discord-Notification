@@ -10,9 +10,9 @@
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
   </PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Discord.Net" Version="3.13.0" />
-		<PackageReference Include="Discord.Net.Webhook" Version="3.13.0" />
-		<PackageReference Include="Discord.Net.WebSocket" Version="3.13.0" />
+		<PackageReference Include="Discord.Net" Version="3.18.0" />
+		<PackageReference Include="Discord.Net.Webhook" Version="3.18.0" />
+		<PackageReference Include="Discord.Net.WebSocket" Version="3.18.0" />
 		<PackageReference Include="NINA.Plugin" Version="3.1.2.9001" />
 	</ItemGroup>
   <PropertyGroup />
