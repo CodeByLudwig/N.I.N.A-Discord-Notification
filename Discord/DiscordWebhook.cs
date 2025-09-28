@@ -7,6 +7,7 @@ using Discord;
 using System.Collections.Generic;
 using Discord.Net;
 using System.IO;
+using NINA.Core.Utility.Notification;
 
 namespace NINA.DiscordNotification.Discord {
 
@@ -16,9 +17,15 @@ namespace NINA.DiscordNotification.Discord {
 
 		public DiscordWebhook(string webhookUrl) {
 			try {
-				_discordWebhookClient = new DiscordWebhookClient(webhookUrl);
+				if (!string.IsNullOrEmpty(webhookUrl)) {
+					_discordWebhookClient = new DiscordWebhookClient(webhookUrl);
+				}
+			} catch (HttpException ex) {
+				Logger.Error($"Could not create discord webhook client", ex);
+				throw new Exception(ex.Message);
 			} catch (Exception ex) {
 				Logger.Error($"Could not create discord webhook client", ex);
+				throw new Exception(ex.Message);
 			}
 		}
 
@@ -34,10 +41,14 @@ namespace NINA.DiscordNotification.Discord {
 			try {
 				if (thread != null) {
 					await thread.SendMessageAsync(fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
-				} else {
+				} else if (_discordWebhookClient != null) {
 					await _discordWebhookClient.SendMessageAsync(fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
 				}
+			} catch (HttpException ex) {
+				Notification.ShowError(ex.Message);
+				Logger.Error($"Could not send message", ex);
 			} catch (Exception ex) {
+				Notification.ShowError(ex.Message);
 				Logger.Error($"Could not send message", ex);
 			}
 		}
@@ -46,7 +57,7 @@ namespace NINA.DiscordNotification.Discord {
 			try {
 				if (thread != null) {
 					await thread.SendFileAsync(filePath, fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
-				} else {
+				} else if (_discordWebhookClient != null) {
 					await _discordWebhookClient.SendFileAsync(filePath, fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
 				}
 			} catch (HttpException ex) {

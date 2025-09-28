@@ -14,6 +14,7 @@ using NINA.Equipment.Interfaces.Mediator;
 using NINA.Profile.Interfaces;
 using NINA.Plugin.Interfaces;
 using System.ComponentModel;
+using NINA.Core.Utility;
 
 namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 	[ExportMetadata("Name", "Create thread and send message after exposures")]
@@ -100,13 +101,14 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			_messageBroker.Subscribe("Livestack_LivestackDockable_StackUpdateBroadcast", this);
 			_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
 			_imageSaveMediator.ImageSaved += ImagingMediator_ImageSaved;
-			_discordTrigger.InitializeThread(Message, SendImage, UseLiveStackImage, AfterExposures, this.GetSequenceTarget()?.TargetName);
+			Task.Run(async () => await _discordTrigger.InitializeThread(Message, SendImage, UseLiveStackImage, AfterExposures, this.GetSequenceTarget()?.TargetName));
 
 			base.SequenceBlockInitialize();
 		}
 
-		public async Task OnMessageReceived(IMessage message) {
-			await _discordTrigger.MessageReceived(message);
+		public Task OnMessageReceived(IMessage message) {
+			_discordTrigger.MessageReceived(message);
+			return Task.CompletedTask;
 		}
 
 		public override void SequenceBlockTeardown() {
