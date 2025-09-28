@@ -10,8 +10,8 @@ using System.Runtime.InteropServices;
 
 // [MANDATORY] The assembly versioning
 //Should be incremented for each new release build of a plugin
-[assembly: AssemblyVersion("2.0.0.5")]
-[assembly: AssemblyFileVersion("2.0.0.5")]
+[assembly: AssemblyVersion("2.0.0.6")]
+[assembly: AssemblyFileVersion("2.0.0.6")]
 
 // [MANDATORY] The name of your plugin
 [assembly: AssemblyTitle("Discord Notification")]
@@ -70,6 +70,9 @@ The authentication token of your Discord bot. Required to create threads and sen
 
 - **Discord Channel ID:**
 The ID of the channel where the thread will be created. Must be a text channel your bot has access to.
+
+- **Thread name template:**
+The thread name is defined using a pattern that can include the following placeholders: $$TARGET$$, $$DATE$$, $$DATEMINUS12$$, $$DATETIME$$, $$TIME$$.
 
 - **Thread Archive Duration:**
 Defines how long the created thread stays active before being auto-archived by Discord.")]

@@ -17,6 +17,9 @@ The authentication token of your Discord bot. Required to create threads and sen
 - **Discord Channel ID:**
 The ID of the channel where the thread will be created. Must be a text channel your bot has access to.
 
+- **Thread name template:**
+The thread name is defined using a pattern that can include the following placeholders: $$TARGET$$, $$DATE$$, $$DATEMINUS12$$, $$DATETIME$$, $$TIME$$.
+
 - **Thread Archive Duration:**
 Defines how long the created thread stays active before being auto-archived by Discord.
 

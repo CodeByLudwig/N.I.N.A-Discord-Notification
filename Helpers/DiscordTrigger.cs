@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.WebSocket;
 using NINA.Core.Utility;
 using NINA.Core.Utility.Notification;
 using NINA.DiscordNotification.Models;
@@ -28,6 +29,7 @@ namespace NINA.DiscordNotification.Helpers {
 		private int _exposuresDone;
 		private bool _sendMessage;
 		private bool _messageReceived;
+		private SendQueue _sendQueue;
 
 		private readonly IImagingMediator _imagingMediator;
 		private readonly IImageDataFactory _imageDataFactory;
@@ -58,7 +60,7 @@ namespace NINA.DiscordNotification.Helpers {
 
 			try {
 				GeneralHelpers.DiscordSocket.Ready += async () => {
-					await _DiscordSocketReady();
+					_thread = await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(TargetName), Properties.Settings.Default.DiscordChannelId);
 				};
 
 				await GeneralHelpers.DiscordSocket.LoginAsync(TokenType.Bot, Properties.Settings.Default.DiscordBotToken);
@@ -68,13 +70,18 @@ namespace NINA.DiscordNotification.Helpers {
 			}
 		}
 
-		public void Teardown() {
+		public async void Teardown() {
+			await _refreshDiscordSocket();
+
 			_thread = null;
 			_exposuresDone = 0;
 			_sendMessage = false;
 			_sendLiveStackedImageMessage = false;
 			_initialized = false;
 			_messageReceived = false;
+
+			await _sendQueue?.ShutdownAsync();
+			_sendQueue?.Dispose();
 		}
 
 		public bool ShouldTrigger(ISequenceItem nextItem) {
@@ -99,25 +106,22 @@ namespace NINA.DiscordNotification.Helpers {
 
 		public void Execute(CancellationToken token) {
 			if (_sendMessage) {
-				if (string.IsNullOrEmpty(Message)) {
-					Notification.ShowWarning("Message is empty. No message has been sent.");
-					Logger.Error($"Message is empty. No message has been sent");
-				} else if (!SendImage && !UseLiveStackImage) {
-					Task.Run(async () => await new Message(_imagingMediator, _imageDataFactory, _profileService) {
+				if (!SendImage && !UseLiveStackImage) {
+					_sendQueue.EnqueueSend(async () => await new Message(_imagingMediator, _imageDataFactory, _profileService) {
 						Text = Message,
 						TargetName = TargetName,
 						Thread = _thread
-					}.Send(), token);
+					}.Send());
 				} else if (UseLiveStackImage) {
 					_messageReceived = true;
 					_sendLiveStackedImageMessage = true;
 				}
 
-				Logger.Info($"Execute send discord notification -> with live stacked image:${_sendLiveStackedImageMessage}");
+				Logger.Info($"Execute send discord notification -> use live stacked image:${_sendLiveStackedImageMessage}");
 			}
 		}
 
-		public async Task MessageReceived(IMessage message) {
+		public void MessageReceived(IMessage message) {
 			if (!UseLiveStackImage || !_sendLiveStackedImageMessage || !_messageReceived) {
 				return;
 			}
@@ -134,12 +138,12 @@ namespace NINA.DiscordNotification.Helpers {
 				return;
 			}
 
-			await new Message(_imagingMediator, _imageDataFactory, _profileService) {
+			_sendQueue.EnqueueSend(async () => await new Message(_imagingMediator, _imageDataFactory, _profileService) {
 				Text = Message,
 				TargetName = TargetName,
 				UseLiveStackedImage = true,
 				Thread = _thread
-			}.Send(latestFile.FullName);
+			}.Send(latestFile.FullName));
 		}
 
 		public void ImageSaved(ImageData imageData) {
@@ -147,7 +151,7 @@ namespace NINA.DiscordNotification.Helpers {
 				return;
 			}
 
-			Task.Run(async () => {
+			_sendQueue.EnqueueSend(async () => {
 				await new Message(_imagingMediator, _imageDataFactory, _profileService) {
 					Text = Message,
 					TargetName = TargetName,
@@ -158,6 +162,7 @@ namespace NINA.DiscordNotification.Helpers {
 		}
 
 		private void _Initialize(string Message, bool SendImage, bool UseLiveStackImage, int AfterExposures, string TargetName) {
+			_sendQueue = new SendQueue();
 			_initialized = true;
 			this.TargetName = TargetName;
 			this.Message = Message;
@@ -166,33 +171,12 @@ namespace NINA.DiscordNotification.Helpers {
 			this.AfterExposures = AfterExposures;
 		}
 
-		private async Task _DiscordSocketReady() {
-			var couldParseArchiveDuration = Enum.TryParse<ThreadArchiveDuration>(Properties.Settings.Default.ArchiveDuration, out var archiveDuration);
-
-			if (!couldParseArchiveDuration) {
-				Notification.ShowWarning("Could not parse archive duration");
-				Logger.Info("Could not parse archive duration");
-				return;
-			}
-
-			ulong channelId = Convert.ToUInt64(Properties.Settings.Default.DiscordChannelId);
-			var channel = GeneralHelpers.DiscordSocket.GetChannel(channelId) as ITextChannel;
-
-			if (channel != null) {
-				var activeThreads = await channel.GetActiveThreadsAsync();
-				_thread = activeThreads.FirstOrDefault(t => t.Name == TargetName);
-
-				if (_thread == null) {
-					_thread = await channel.CreateThreadAsync(
-						name: TargetName,
-						autoArchiveDuration: archiveDuration,
-						invitable: false,
-						type: ThreadType.PublicThread
-					);
-				}
-			} else {
-				Notification.ShowError($"Channel not found! -> channelId: {channelId}");
-				Logger.Error($"Channel not found! -> channelId: {channelId}");
+		private async Task _refreshDiscordSocket() {
+			if (_thread != null && GeneralHelpers.DiscordSocket != null) {
+				await GeneralHelpers.DiscordSocket.LogoutAsync();
+				await GeneralHelpers.DiscordSocket.StopAsync();
+				GeneralHelpers.DiscordSocket.Dispose();
+				GeneralHelpers.DiscordSocket = new DiscordSocketClient();
 			}
 		}
 	}
