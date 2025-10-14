@@ -104,7 +104,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Width="200" Text="Discord Bot Token" />
-                        <TextBox Grid.Column="1" Margin="12,0,0,0" MinWidth="400" Text="{Binding DiscordBotToken}" />
+                        <TextBox Grid.Column="1" Margin="10,0,0,0" MinWidth="400" Text="{Binding DiscordBotToken}" />
                         <Button
                           Grid.Column="2"
                           Height="20"
@@ -133,7 +133,7 @@
                             MinWidth="150"
                             Text="{Binding ThreadNameTemplate}" />
                         <TextBox
-                            Text="Placeholders: $$TARGET$$, $$DATE$$, $$DATEMINUS12$$, $$DATETIME$$, $$TIME$$"
+                            Text="Placeholders: $$TARGET$$, $$DATE$$, $$DATEMINUS12$$, $$DATETIME$$, $$TIME$$, $$FILTER$$"
                             IsReadOnly="True"
                             BorderThickness="0"
                             Background="Transparent"
