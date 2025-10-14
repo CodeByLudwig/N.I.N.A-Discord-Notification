@@ -20,7 +20,7 @@ namespace NINA.DiscordNotification.Models {
 		public ImageData ImageData { get; set; }
 		public string TargetName { get; set; }
 		public bool UseLiveStackedImage { get; set; }
-		public IThreadChannel? Thread { get; set; }
+		public string Filter { get; set; }
 
 		private string _filePath;
 
@@ -48,7 +48,7 @@ namespace NINA.DiscordNotification.Models {
 			_extendedFields.Add(key, value);
 		}
 
-		public async Task Send(string path) {
+		public async Task Send(bool isThread, string path) {
 			try {
 				object image = null;
 				var sendStopwatch = new Stopwatch();
@@ -71,7 +71,7 @@ namespace NINA.DiscordNotification.Models {
 				}
 
 				sendStopwatch.Start();
-				await Send();
+				await Send(isThread);
 				sendStopwatch.Stop();
 
 				if (_filePath != null && File.Exists(_filePath)) {
@@ -84,13 +84,43 @@ namespace NINA.DiscordNotification.Models {
 			}
 		}
 
-		public async Task Send() {
-			try {
+		public async Task Send(bool isThread) {
+			async Task ExecuteSend(bool isThread) {
+				IThreadChannel thread = isThread ? await GetThread() : null;
+
 				if (_filePath != null) {
-					await GeneralHelpers.DiscordWebhook.SendFileMessage(_filePath, Text, _GetEmbedFields(), Thread);
+					await GeneralHelpers.DiscordWebhook.SendFileMessage(_filePath, Text, _GetEmbedFields(), thread);
 					return;
 				}
-				await GeneralHelpers.DiscordWebhook.SendMessage(Text, _GetEmbedFields(), Thread);
+				await GeneralHelpers.DiscordWebhook.SendMessage(Text, _GetEmbedFields(), thread);
+			}
+
+			async Task<IThreadChannel> GetThread() {
+				if (GeneralHelpers.DiscordSocket.ConnectionState == ConnectionState.Connected) {
+					return await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(TargetName, Filter), Properties.Settings.Default.DiscordChannelId);
+				}
+
+				var taskCompletion = new TaskCompletionSource<IThreadChannel>();
+
+				Task Handler() {
+					GeneralHelpers.DiscordSocket.Ready -= Handler;
+
+					_ = Task.Run(async () => {
+						var thread = await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(TargetName, Filter), Properties.Settings.Default.DiscordChannelId);
+
+						taskCompletion.SetResult(thread);
+					});
+
+					return Task.CompletedTask;
+				}
+
+				GeneralHelpers.DiscordSocket.Ready += Handler;
+
+				return await taskCompletion.Task;
+			}
+
+			try {
+				await ExecuteSend(isThread);
 			} catch (Exception ex) {
 				Notification.ShowWarning("Exception: " + ex);
 				Logger.Error(ex);

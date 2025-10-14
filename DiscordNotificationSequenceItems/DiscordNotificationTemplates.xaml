@@ -94,7 +94,7 @@
                             <StackPanel Margin="12,0,0,0" Orientation="Horizontal" Visibility="{Binding ShowFilterSelection, Converter={StaticResource VisibilityConverter}}">
                                 <TextBlock VerticalAlignment="Center" Text="Select Filters to Send Images For"/>
                                 <ComboBox
-                                    MinWidth="120"
+                                    MinWidth="150"
                                     Margin="6,0,0,0"
                                     ItemsSource="{Binding AvailableFilters}"
                                     IsEditable="True"
@@ -107,7 +107,7 @@
                                         <DataTemplate>
                                             <Grid HorizontalAlignment="Stretch">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="45" />
+                                                    <ColumnDefinition Width="75" />
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock 
@@ -177,7 +177,7 @@
                             <StackPanel Margin="12,0,0,0" Orientation="Horizontal" Visibility="{Binding ShowFilterSelection, Converter={StaticResource VisibilityConverter}}">
                                 <TextBlock VerticalAlignment="Center" Text="Select Filters to Send Images For"/>
                                 <ComboBox
-                     MinWidth="120"
+                     MinWidth="150"
                      Margin="6,0,0,0"
                      ItemsSource="{Binding AvailableFilters}"
                      IsEditable="True"
@@ -190,7 +190,7 @@
                                         <DataTemplate>
                                             <Grid HorizontalAlignment="Stretch">
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="45" />
+                                                    <ColumnDefinition Width="75" />
                                                     <ColumnDefinition Width="*" />
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock 

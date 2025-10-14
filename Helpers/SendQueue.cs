@@ -1,25 +1,48 @@
 ﻿using NINA.Core.Utility;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
 public class SendCommands {
-	public readonly Queue<SendCommand> PendingSendCommands = new();
 	public readonly object SendListLock = new();
+	public readonly object SendLiveStackListLock = new object();
+	public readonly Queue<SendCommand> PendingSendCommands = new();
+	public readonly Queue<LiveStackSendCommands> LiveStackCommands = new();
 
 	public void AddSendCommand(SendCommand cmd) {
 		lock (SendListLock) {
 			PendingSendCommands.Enqueue(cmd);
 		}
 	}
+
+	public void AddLiveStackCommands(LiveStackSendCommands cmd) {
+		lock (SendLiveStackListLock) {
+			LiveStackCommands.Enqueue(cmd);
+		}
+	}
+}
+
+public class LiveStackSendCommands {
+	public readonly object SendPendingLiveStackListLock = new object();
+	public readonly Queue<LiveStackSendCommand> PendingLiveStackSendCommands = new();
+
+	public void AddLiveStackSendCommand(LiveStackSendCommand cmd) {
+		lock (SendPendingLiveStackListLock) {
+			PendingLiveStackSendCommands.Enqueue(cmd);
+		}
+	}
 }
 
 public class SendCommand {
-	public bool IsLiveStackImageSend { get; init; }
-	public string Filter { get; init; }
 	public Func<Task> SendFunc { get; set; }
+}
+
+public class LiveStackSendCommand {
+	public Func<Task<FileInfo>> SendFunc { get; set; }
+	public string Filter { get; init; }
 }
 
 public class SendQueue : IDisposable {
@@ -61,6 +84,7 @@ public class SendQueue : IDisposable {
 			Logger.Error("SendQueue has been canceled");
 		}
 	}
+
 	public bool HasPendingItems() {
 		return Volatile.Read(ref _queueCount) > 0;
 	}

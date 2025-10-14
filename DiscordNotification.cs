@@ -122,6 +122,17 @@ namespace NINA.DiscordNotification {
 			}
 		}
 
+		public string CustomFilters {
+			get {
+				return Settings.Default.CustomFilters;
+			}
+			set {
+				Settings.Default.CustomFilters = value;
+				CoreUtil.SaveSettings(Settings.Default);
+				RaisePropertyChanged();
+			}
+		}
+
 		public string LiveStackedImageDirectory {
 			get {
 				return Settings.Default.LiveStackedImageDirectory;

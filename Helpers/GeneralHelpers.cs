@@ -66,7 +66,7 @@ namespace NINA.DiscordNotification.Helpers {
 			return Properties.Settings.Default.ThreadNameTemplate.Replace(TargetPattern, targetName).Replace(FilterPattern, filter).Replace(DateMinus12Pattern, dateMinus12).Replace(DatePattern, now.ToLocalTime().ToString("yyyy-MM-dd")).Replace(DateTimePattern, now.ToLocalTime().ToString("yyyy-MM-dd_HH-mm")).Replace(TimePattern, now.ToLocalTime().ToString("HH-mm"));
 		}
 
-		public static async Task<IThreadChannel> InitDiscordSocket(string targetName, string id) {
+		public static async Task<IThreadChannel> InitDiscordSocket(string threadName, string id) {
 			var couldParseArchiveDuration = Enum.TryParse<ThreadArchiveDuration>(Properties.Settings.Default.ArchiveDuration, out var archiveDuration);
 
 			if (!couldParseArchiveDuration) {
@@ -75,7 +75,7 @@ namespace NINA.DiscordNotification.Helpers {
 				return null;
 			}
 
-			if (string.IsNullOrEmpty(targetName)) {
+			if (string.IsNullOrEmpty(threadName)) {
 				Notification.ShowError("Could not create thread: no target set");
 				Logger.Error("Could not create thread: no target set");
 				return null;
@@ -86,11 +86,11 @@ namespace NINA.DiscordNotification.Helpers {
 
 			if (channel != null) {
 				var activeThreads = await channel.GetActiveThreadsAsync();
-				var thread = activeThreads.FirstOrDefault(t => t.Name == targetName);
+				var thread = activeThreads.FirstOrDefault(t => t.Name == threadName);
 
 				if (thread == null) {
 					thread = await channel.CreateThreadAsync(
-						name: targetName,
+						name: threadName,
 						autoArchiveDuration: archiveDuration,
 						invitable: false,
 						type: ThreadType.PublicThread

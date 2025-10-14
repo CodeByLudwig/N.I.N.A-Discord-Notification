@@ -8,119 +8,127 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-using Discord;
-using NINA.Core.Utility;
-using System.Collections.Generic;
-
 namespace NINA.DiscordNotification.Properties {
-
-
-	[global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-	[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.13.0.0")]
-	internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
-
-		private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
-
-		public static Settings Default {
-			get {
-				return defaultInstance;
-			}
-		}
-
-		[global::System.Configuration.UserScopedSettingAttribute()]
-		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-		[global::System.Configuration.DefaultSettingValueAttribute("True")]
-		public bool UpdateSettings {
-			get {
-				return ((bool)(this["UpdateSettings"]));
-			}
-			set {
-				this["UpdateSettings"] = value;
-			}
-		}
-
-		[global::System.Configuration.UserScopedSettingAttribute()]
-		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-		[global::System.Configuration.DefaultSettingValueAttribute("")]
-		public string DiscordWebhookUrl {
-			get {
-				return ((string)(this["DiscordWebhookUrl"]));
-			}
-			set {
-				this["DiscordWebhookUrl"] = value;
-			}
-		}
-
-		[global::System.Configuration.UserScopedSettingAttribute()]
-		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-		[global::System.Configuration.DefaultSettingValueAttribute("")]
-		public string DiscordBotToken {
-			get {
-				return ((string)(this["DiscordBotToken"]));
-			}
-			set {
-				this["DiscordBotToken"] = value;
-			}
-		}
-
-		[global::System.Configuration.UserScopedSettingAttribute()]
-		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-		[global::System.Configuration.DefaultSettingValueAttribute("")]
-		public string DiscordChannelId {
-			get {
-				return ((string)(this["DiscordChannelId"]));
-			}
-			set {
-				this["DiscordChannelId"] = value;
-			}
-		}
-
-		[global::System.Configuration.UserScopedSettingAttribute()]
-		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-		[global::System.Configuration.DefaultSettingValueAttribute("$$TARGET$$")]
-		public string ThreadNameTemplate {
-			get {
-				return ((string)(this["ThreadNameTemplate"]));
-			}
-			set {
-				this["ThreadNameTemplate"] = value;
-			}
-		}
-
-		[global::System.Configuration.UserScopedSettingAttribute()]
-		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-		[global::System.Configuration.DefaultSettingValueAttribute("OneWeek")]
-		public string ArchiveDuration {
-			get {
-				return ((string)(this["ArchiveDuration"]));
-			}
-			set {
-				this["ArchiveDuration"] = value;
-			}
-		}
-
-		[global::System.Configuration.UserScopedSettingAttribute()]
-		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-		[global::System.Configuration.DefaultSettingValueAttribute("")]
-		public string LiveStackedImageDirectory {
-			get {
-				return ((string)(this["LiveStackedImageDirectory"]));
-			}
-			set {
-				this["LiveStackedImageDirectory"] = value;
-			}
-		}
-
-		[global::System.Configuration.UserScopedSettingAttribute()]
-		[global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-		[global::System.Configuration.DefaultSettingValueAttribute("90")]
-		public int ImageScaleFactor {
-			get {
-				return ((int)(this["ImageScaleFactor"]));
-			}
-			set {
-				this["ImageScaleFactor"] = value;
-			}
-		}
-	}
+    
+    
+    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.13.0.0")]
+    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+        
+        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
+        
+        public static Settings Default {
+            get {
+                return defaultInstance;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool UpdateSettings {
+            get {
+                return ((bool)(this["UpdateSettings"]));
+            }
+            set {
+                this["UpdateSettings"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DiscordWebhookUrl {
+            get {
+                return ((string)(this["DiscordWebhookUrl"]));
+            }
+            set {
+                this["DiscordWebhookUrl"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DiscordBotToken {
+            get {
+                return ((string)(this["DiscordBotToken"]));
+            }
+            set {
+                this["DiscordBotToken"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string DiscordChannelId {
+            get {
+                return ((string)(this["DiscordChannelId"]));
+            }
+            set {
+                this["DiscordChannelId"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("$$TARGET$$")]
+        public string ThreadNameTemplate {
+            get {
+                return ((string)(this["ThreadNameTemplate"]));
+            }
+            set {
+                this["ThreadNameTemplate"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("OneWeek")]
+        public string ArchiveDuration {
+            get {
+                return ((string)(this["ArchiveDuration"]));
+            }
+            set {
+                this["ArchiveDuration"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LiveStackedImageDirectory {
+            get {
+                return ((string)(this["LiveStackedImageDirectory"]));
+            }
+            set {
+                this["LiveStackedImageDirectory"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("90")]
+        public int ImageScaleFactor {
+            get {
+                return ((int)(this["ImageScaleFactor"]));
+            }
+            set {
+                this["ImageScaleFactor"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CustomFilters {
+            get {
+                return ((string)(this["CustomFilters"]));
+            }
+            set {
+                this["CustomFilters"] = value;
+            }
+        }
+    }
 }

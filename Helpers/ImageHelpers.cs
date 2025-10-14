@@ -10,19 +10,22 @@ using System.Windows.Media;
 using System.Linq;
 using System.Diagnostics;
 using System.Threading;
+using System.Text.RegularExpressions;
 
 namespace NINA.DiscordNotification.Helpers {
 	public static class ImageHelpers {
+		public static readonly string OSCFILTERPATTERN = "_OSC";
+
 		public static ImageData GetImageData(this ImageSavedEventArgs eventArgs) {
 			return new ImageData(eventArgs);
 		}
 
-		public static FileInfo WaitForFile(string directory, string[] patterns, string targetName, int timeout = 8000, int pollInterval = 800) {
+		public static FileInfo WaitForLiveStackFile(string directory, string[] patterns, string targetName, int timeout = 8000, int pollInterval = 800) {
 			var stopwatch = Stopwatch.StartNew();
 
 			while (stopwatch.ElapsedMilliseconds < timeout) {
 				var file = patterns.SelectMany(pattern => new DirectoryInfo(directory).GetFiles(pattern))
-				   .Where(f => (string.IsNullOrEmpty(targetName) || Path.GetFileNameWithoutExtension(f.FullName) == targetName) && f.Length > 0)
+				   .Where(f => (string.IsNullOrEmpty(targetName) || Regex.Replace(Path.GetFileNameWithoutExtension(f.FullName), $"{OSCFILTERPATTERN}$", "") == Regex.Replace(targetName, $"{OSCFILTERPATTERN}$", "")) && f.Length > 0)
 				   .OrderByDescending(f => f.LastWriteTime)
 				   .FirstOrDefault();
 
@@ -68,11 +71,12 @@ namespace NINA.DiscordNotification.Helpers {
 
 		private static BitmapSource _LoadAsBitmapSource(string path) {
 			var tempPath = Path.GetTempFileName();
+
 			File.Copy(path, tempPath, overwrite: true);
 
 			var bitmap = new BitmapImage();
 
-			using (var stream = new FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.Read)) {
+			using (var stream = new FileStream(tempPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
 				bitmap.BeginInit();
 				bitmap.CacheOption = BitmapCacheOption.OnLoad;
 				bitmap.StreamSource = stream;

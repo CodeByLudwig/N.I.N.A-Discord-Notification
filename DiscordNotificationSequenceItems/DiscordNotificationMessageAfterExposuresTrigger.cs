@@ -85,13 +85,12 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 				if (availableFilters == null) {
 					availableFilters = new ObservableCollection<FilterOption> {
 						new FilterOption { Name = "RGB", IsSelected = true },
-						new FilterOption { Name = "R" },
-						new FilterOption { Name = "G" },
-						new FilterOption { Name = "B" },
-						new FilterOption { Name = "S" },
-						new FilterOption { Name = "H" },
-						new FilterOption { Name = "O" },
+						new FilterOption { Name = GeneralHelpers.FilterPattern },
 					};
+
+					foreach (var filter in Properties.Settings.Default.CustomFilters.Split(",")) {
+						availableFilters.Add(new FilterOption { Name = filter, IsSelected = false });
+					}
 				}
 
 				FilterOption.SelectionChanged = () => {
@@ -164,9 +163,14 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		}
 
 		public override void SequenceBlockTeardown() {
-			_discordTrigger.Teardown().GetAwaiter().GetResult();
-			_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
-			_messageBroker.Unsubscribe("Livestack_LivestackDockable_StackUpdateBroadcast", this);
+			Task.Run(async () => {
+				try {
+					await _discordTrigger.Teardown();
+					_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
+					_messageBroker.Unsubscribe("Livestack_LivestackDockable_StackUpdateBroadcast", this);
+				} catch { }
+			});
+
 			base.SequenceBlockTeardown();
 		}
 
