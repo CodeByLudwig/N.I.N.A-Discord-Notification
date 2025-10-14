@@ -23,8 +23,8 @@ namespace NINA.DiscordNotification {
 				await new Message(null, null, null) {
 					Text = "This is a message for testing",
 					TargetName = "Test",
-					Thread = null
-				}.Send();
+					Filter = null
+				}.Send(false);
 				Notification.ShowSuccess("Message successfully sent");
 			} catch (Exception ex) {
 				Notification.ShowError(ex.Message);

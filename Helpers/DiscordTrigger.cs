@@ -14,8 +14,11 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using IMessage = NINA.Plugin.Interfaces.IMessage;
+using Message = NINA.DiscordNotification.Models.Message;
 
 namespace NINA.DiscordNotification.Helpers {
 	public class DiscordTrigger {
@@ -26,12 +29,11 @@ namespace NINA.DiscordNotification.Helpers {
 		public List<FilterOption> SelectedFilters { get; set; }
 		public string TargetName { get; set; }
 
-		private IThreadChannel _thread;
 		private int _exposuresDone;
 		private bool _sendMessage;
 		private bool _initialized;
-		private bool _messageReceived;
-		private bool _waitingForBroadcast;
+		private List<string> _receivedFilters;
+		private bool _isThread;
 		private SendQueue _sendQueue;
 		private SendCommands _sendCommands;
 
@@ -52,6 +54,8 @@ namespace NINA.DiscordNotification.Helpers {
 		public async Task InitializeThread(string Message, bool SendImage, bool UseLiveStackImage, int AfterExposures, string TargetName, ObservableCollection<FilterOption> AvailableFilters) {
 			_Initialize(Message, SendImage, UseLiveStackImage, AfterExposures, TargetName, AvailableFilters);
 
+			_isThread = true;
+
 			if (string.IsNullOrEmpty(Properties.Settings.Default.DiscordChannelId)) {
 				Notification.ShowWarning("DiscordChannelId needs to be set");
 				Logger.Info("DiscordChannelId needs to be set");
@@ -62,11 +66,14 @@ namespace NINA.DiscordNotification.Helpers {
 				return;
 			}
 
-			try {
-				GeneralHelpers.DiscordSocket.Ready += async () => {
-					_thread = await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(TargetName), Properties.Settings.Default.DiscordChannelId);
-				};
+			if (GeneralHelpers.DiscordSocket != null) {
+				await GeneralHelpers.DiscordSocket.LogoutAsync();
+				await GeneralHelpers.DiscordSocket.StopAsync();
+				GeneralHelpers.DiscordSocket.Dispose();
+				GeneralHelpers.DiscordSocket = new DiscordSocketClient();
+			}
 
+			try {
 				await GeneralHelpers.DiscordSocket.LoginAsync(TokenType.Bot, Properties.Settings.Default.DiscordBotToken);
 				await GeneralHelpers.DiscordSocket.StartAsync();
 			} catch (Exception ex) {
@@ -74,19 +81,27 @@ namespace NINA.DiscordNotification.Helpers {
 			}
 		}
 
-		public async Task Teardown(int timeout = 120000) {
+		public async Task Teardown(int timeout = 60000, CancellationToken cancellationToken = default) {
 			var stopwatch = Stopwatch.StartNew();
 
 			while (true) {
+				bool noPendingCommands;
+				bool noLiveStackCommands;
+
 				lock (_sendCommands.SendListLock) {
-					if (_sendCommands.PendingSendCommands.Count == 0 && _waitingForBroadcast) {
-						break;
-					}
+					noPendingCommands = _sendCommands.PendingSendCommands.Count == 0;
 				}
 
-				if (_sendQueue != null && _sendQueue.HasPendingItems()) {
-					await Task.Delay(200);
-					continue;
+				lock (_sendCommands.SendLiveStackListLock) {
+					noLiveStackCommands = _sendCommands.LiveStackCommands.Count == 0;
+				}
+
+				if (noPendingCommands && noLiveStackCommands && (_sendQueue == null || !_sendQueue.HasPendingItems())) {
+					break;
+				}
+
+				if (!noLiveStackCommands) {
+					Logger.Debug($"Wait for {_sendCommands.LiveStackCommands.Count} LiveStack-Command(s)...");
 				}
 
 				if (stopwatch.ElapsedMilliseconds > timeout) {
@@ -99,12 +114,11 @@ namespace NINA.DiscordNotification.Helpers {
 
 			await _refreshDiscordSocket();
 
-			_thread = null;
 			_exposuresDone = 0;
 			_sendMessage = false;
 			_initialized = false;
-			_messageReceived = false;
-			_waitingForBroadcast = false;
+			_receivedFilters = new List<string>();
+			_isThread = false;
 
 			await _sendQueue?.ShutdownAsync();
 			_sendQueue?.Dispose();
@@ -119,7 +133,6 @@ namespace NINA.DiscordNotification.Helpers {
 						_sendMessage = true;
 						return true;
 					}
-
 				}
 			}
 
@@ -130,21 +143,10 @@ namespace NINA.DiscordNotification.Helpers {
 
 		public void Execute() {
 			if (_sendMessage) {
-				if (!SendImage && !UseLiveStackImage) {
-					_sendQueue.EnqueueSend(async () => await new Message(_imagingMediator, _imageDataFactory, _profileService) {
-						Text = Message,
-						TargetName = TargetName,
-						Thread = _thread
-					}.Send());
+				if (!UseLiveStackImage) {
+					_sendCommands.AddSendCommand(new SendCommand());
 				} else {
-					_messageReceived = true;
-					if (UseLiveStackImage) {
-						SelectedFilters.ForEach(filter => {
-							_sendCommands.AddSendCommand(new SendCommand { IsLiveStackImageSend = true, Filter = filter.Name });
-						});
-					} else {
-						_sendCommands.AddSendCommand(new SendCommand { IsLiveStackImageSend = false });
-					}
+					_sendCommands.AddLiveStackCommands(new LiveStackSendCommands());
 				}
 
 				Logger.Info($"Execute send discord notification -> use live stacked image:${UseLiveStackImage}");
@@ -152,43 +154,99 @@ namespace NINA.DiscordNotification.Helpers {
 		}
 
 		public void MessageReceived(IMessage message) {
-			if (!UseLiveStackImage || !_messageReceived) {
-				return;
+			lock (_sendCommands.SendLiveStackListLock) {
+				if (!UseLiveStackImage) {
+					return;
+				}
+
+				var content = message.Content.GetType().GetProperty("Filter");
+				var filter = Regex.Replace(content.GetValue(message.Content).ToString(), $"{ImageHelpers.OSCFILTERPATTERN}$", "");
+
+				if (!_receivedFilters.Any(f => f == filter)) {
+					_receivedFilters.Add(filter);
+				} else {
+					var cmd = _sendCommands.LiveStackCommands.Dequeue();
+
+					_receivedFilters.ForEach(receivedFilter => {
+						var currentFilter = SelectedFilters.FirstOrDefault(sf => sf.IsSelected && sf.Name == GeneralHelpers.FilterPattern);
+						if (currentFilter != null) {
+							cmd.AddLiveStackSendCommand(new LiveStackSendCommand { Filter = currentFilter.Name.Replace(GeneralHelpers.FilterPattern, receivedFilter) });
+						}
+
+						var selectedFilter = SelectedFilters.FirstOrDefault(sf => sf.IsSelected && sf.Name != GeneralHelpers.FilterPattern && sf.Name == receivedFilter);
+						if (selectedFilter != null) {
+							cmd.AddLiveStackSendCommand(new LiveStackSendCommand { Filter = selectedFilter.Name });
+						}
+					});
+
+					_receivedFilters = new List<string>();
+					_OnBroadcastTriggered(cmd);
+				}
 			}
-
-			var t = message.Content.GetType().GetProperty("Filter");
-			Notification.ShowSuccess("test" + t.GetValue(message.Content));
-
-			_messageReceived = false;
-			_OnBroadcastTriggered();
 		}
 
 		public void ImageSaved(ImageData ImageData) {
-			if (!_sendMessage || !SendImage) {
+			if (UseLiveStackImage) {
+				return;
+			}
+
+			if (!SendImage) {
+				_sendQueue.EnqueueSend(async () => await new Message(_imagingMediator, _imageDataFactory, _profileService) {
+					Text = Message,
+					TargetName = TargetName,
+					ImageData = ImageData,
+					Filter = ImageData.Filter,
+				}.Send(_isThread));
 				return;
 			}
 
 			_OnBroadcastTriggered(ImageData);
 		}
 
+		private void _OnBroadcastTriggered(LiveStackSendCommands cmd) {
+			lock (cmd.SendPendingLiveStackListLock) {
+				if (cmd.PendingLiveStackSendCommands.Count > 0) {
+					var liveStackCmd = cmd.PendingLiveStackSendCommands.Dequeue();
+
+					liveStackCmd.SendFunc = async () => await _SendLiveStackImage(liveStackCmd.Filter);
+
+					FileInfo latestFile = null;
+
+					bool written = _sendQueue.EnqueueSend(async () => {
+						try {
+							latestFile = await liveStackCmd.SendFunc();
+						} finally {
+							if (latestFile != null && latestFile.Exists) {
+								latestFile.Delete();
+							}
+
+							lock (_sendCommands.SendListLock) {
+								if (cmd.PendingLiveStackSendCommands.Count > 0) {
+									Task.Run(() => _OnBroadcastTriggered(cmd));
+								}
+							}
+						}
+					});
+
+					if (!written) {
+						Logger.Error("Failed to enqueue send task.");
+					}
+				}
+			}
+		}
+
 		private void _OnBroadcastTriggered(ImageData ImageData = null) {
 			lock (_sendCommands.SendListLock) {
-				if (_waitingForBroadcast && _sendCommands.PendingSendCommands.Count > 0) {
+				if (_sendCommands.PendingSendCommands.Count > 0) {
 					var cmd = _sendCommands.PendingSendCommands.Dequeue();
 
-					if (cmd.IsLiveStackImageSend) {
-						cmd.SendFunc = async () => await _SendLiveStackImage(cmd.Filter);
-					} else {
-						cmd.SendFunc = async () => await _SendImage(ImageData);
-					}
+					cmd.SendFunc = async () => await _SendImage(ImageData);
 
 					bool written = _sendQueue.EnqueueSend(async () => {
 						try {
 							await cmd.SendFunc();
 						} finally {
 							lock (_sendCommands.SendListLock) {
-								_waitingForBroadcast = true;
-
 								if (_sendCommands.PendingSendCommands.Count > 0) {
 									Task.Run(() => _OnBroadcastTriggered(ImageData));
 								}
@@ -198,46 +256,45 @@ namespace NINA.DiscordNotification.Helpers {
 
 					if (!written) {
 						Logger.Error("Failed to enqueue send task.");
-						_waitingForBroadcast = true;
-					} else {
-						_waitingForBroadcast = false;
 					}
 				}
 			}
 		}
 
-		private Task _SendLiveStackImage(string Filter) {
+		private async Task<FileInfo> _SendLiveStackImage(string SelectedFilterName) {
 			FileInfo latestFile = null;
-			var fileName = $"{TargetName}-{Filter}";
+			var fileName = $"{TargetName}-{SelectedFilterName}";
 
 			try {
-				latestFile = ImageHelpers.WaitForFile(Properties.Settings.Default.LiveStackedImageDirectory, ["*.png"], fileName);
+				latestFile = ImageHelpers.WaitForLiveStackFile(Properties.Settings.Default.LiveStackedImageDirectory, ["*.png"], fileName);
 
 				if (string.IsNullOrEmpty(latestFile?.FullName)) {
-					latestFile = ImageHelpers.WaitForFile(Properties.Settings.Default.LiveStackedImageDirectory, ["*.fits"], fileName);
+					latestFile = ImageHelpers.WaitForLiveStackFile(Properties.Settings.Default.LiveStackedImageDirectory, ["*.fits"], fileName);
 				}
 
 				if (string.IsNullOrEmpty(latestFile?.FullName)) {
 					Notification.ShowWarning($"No Image from LiveStack found! -> using File Name: {fileName}");
 					Logger.Error($"No Image from LiveStack found! -> using File Name: {fileName}");
-					return Task.CompletedTask;
+					return latestFile;
 				}
 
 				var message = new Message(_imagingMediator, _imageDataFactory, _profileService) {
 					Text = Message,
 					TargetName = TargetName,
 					UseLiveStackedImage = true,
-					Thread = _thread
+					Filter = SelectedFilterName
 				};
 
 				message.AddExtendedField("File Name", fileName);
+				message.AddExtendedField("Filter", SelectedFilterName);
+				await message.Send(_isThread, latestFile.FullName);
 
-				return message.Send(latestFile.FullName);
-			} finally {
-				if (latestFile != null && latestFile.Exists) {
-					latestFile.Delete();
-				}
+				return latestFile;
+			} catch (Exception ex) {
+				Logger.Error($"Error while sending: {ex.Message}");
 			}
+
+			return latestFile;
 		}
 
 		private Task _SendImage(ImageData ImageData) {
@@ -245,15 +302,15 @@ namespace NINA.DiscordNotification.Helpers {
 				Text = Message,
 				TargetName = TargetName,
 				ImageData = ImageData,
-				Thread = _thread,
-			}.Send(_profileService.ActiveProfile.ImageFileSettings.FilePath);
+				Filter = ImageData.Filter,
+			}.Send(_isThread, _profileService.ActiveProfile.ImageFileSettings.FilePath);
 		}
 
 		private void _Initialize(string Message, bool SendImage, bool UseLiveStackImage, int AfterExposures, string TargetName, ObservableCollection<FilterOption> AvailableFilters) {
 			_sendQueue = new SendQueue();
 			_sendCommands = new SendCommands();
-			_waitingForBroadcast = true;
 			_initialized = true;
+			_receivedFilters = new List<string>();
 			this.TargetName = TargetName;
 			this.Message = Message;
 			this.SendImage = SendImage;
@@ -263,7 +320,7 @@ namespace NINA.DiscordNotification.Helpers {
 		}
 
 		private async Task _refreshDiscordSocket() {
-			if (_thread != null && GeneralHelpers.DiscordSocket != null) {
+			if (GeneralHelpers.DiscordSocket != null) {
 				await GeneralHelpers.DiscordSocket.LogoutAsync();
 				await GeneralHelpers.DiscordSocket.StopAsync();
 				GeneralHelpers.DiscordSocket.Dispose();
