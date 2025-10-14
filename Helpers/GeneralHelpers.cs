@@ -17,6 +17,7 @@ namespace NINA.DiscordNotification.Helpers {
 		public static readonly string DateTimePattern = "$$DATETIME$$";
 		public static readonly string TimePattern = "$$TIME$$";
 		public static readonly string TargetPattern = "$$TARGET$$";
+		public static readonly string FilterPattern = "$$FILTER$$";
 
 		public static IDiscordWebhook DiscordWebhook {
 			get {
@@ -55,14 +56,14 @@ namespace NINA.DiscordNotification.Helpers {
 			return entity.Parent?.GetSequenceTarget();
 		}
 
-		public static string DefineThreadName(string targetName) {
+		public static string DefineThreadName(string targetName, string filter) {
 			if (string.IsNullOrEmpty(Properties.Settings.Default.ThreadNameTemplate)) {
 				return "";
 			}
 			DateTime now = DateTime.Now;
 			string dateMinus12 = now.TimeOfDay >= TimeSpan.FromHours(12) ? now.ToLocalTime().AddHours(-12).ToString("yyyy-MM-dd") : now.ToLocalTime().AddDays(-1).ToString("yyyy-MM-dd");
 
-			return Properties.Settings.Default.ThreadNameTemplate.Replace(TargetPattern, targetName).Replace(DateMinus12Pattern, dateMinus12).Replace(DatePattern, now.ToLocalTime().ToString("yyyy-MM-dd")).Replace(DateTimePattern, now.ToLocalTime().ToString("yyyy-MM-dd_HH-mm")).Replace(TimePattern, now.ToLocalTime().ToString("HH-mm"));
+			return Properties.Settings.Default.ThreadNameTemplate.Replace(TargetPattern, targetName).Replace(FilterPattern, filter).Replace(DateMinus12Pattern, dateMinus12).Replace(DatePattern, now.ToLocalTime().ToString("yyyy-MM-dd")).Replace(DateTimePattern, now.ToLocalTime().ToString("yyyy-MM-dd_HH-mm")).Replace(TimePattern, now.ToLocalTime().ToString("HH-mm"));
 		}
 
 		public static async Task<IThreadChannel> InitDiscordSocket(string targetName, string id) {

@@ -14,8 +14,9 @@ using NINA.Equipment.Interfaces.Mediator;
 using NINA.Profile.Interfaces;
 using NINA.Plugin.Interfaces;
 using System.ComponentModel;
-using NINA.Core.Utility;
-using System.Runtime.CompilerServices;
+using System.Collections.ObjectModel;
+using NINA.DiscordNotification.Models;
+using System.Linq;
 
 namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 	[ExportMetadata("Name", "Send message after exposures")]
@@ -41,7 +42,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			get { return sendImage; }
 			set {
 				sendImage = value;
-				this.OnPropertyChanged(new PropertyChangedEventArgs(nameof(ShowUseLiveStackImage)));
+				OnPropertyChanged(new PropertyChangedEventArgs(nameof(ShowUseLiveStackImage)));
 				_discordTrigger.SendImage = value;
 			}
 		}
@@ -62,6 +63,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			get { return ShowUseLiveStackImage && useLiveStackImage; }
 			set {
 				useLiveStackImage = value;
+				OnPropertyChanged(new PropertyChangedEventArgs(nameof(ShowFilterSelection)));
 				_discordTrigger.UseLiveStackImage = value;
 			}
 		}
@@ -69,6 +71,55 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		[JsonProperty]
 		public bool ShowUseLiveStackImage {
 			get { return !string.IsNullOrEmpty(Properties.Settings.Default.LiveStackedImageDirectory) ? sendImage : false; }
+		}
+
+		[JsonProperty]
+		public bool ShowFilterSelection {
+			get { return useLiveStackImage; }
+		}
+
+		[JsonProperty]
+		ObservableCollection<FilterOption> availableFilters;
+		public ObservableCollection<FilterOption> AvailableFilters {
+			get {
+				if (availableFilters == null) {
+					availableFilters = new ObservableCollection<FilterOption> {
+						new FilterOption { Name = "RGB", IsSelected = true },
+						new FilterOption { Name = "R" },
+						new FilterOption { Name = "G" },
+						new FilterOption { Name = "B" },
+						new FilterOption { Name = "S" },
+						new FilterOption { Name = "H" },
+						new FilterOption { Name = "O" },
+					};
+				}
+
+				FilterOption.SelectionChanged = () => {
+					if (availableFilters.All(x => !x.IsSelected)) {
+						availableFilters.FirstOrDefault(f => f.Name == "RGB").IsSelected = true;
+					}
+
+					OnPropertyChanged(nameof(SelectedFiltersText));
+				};
+
+				return availableFilters;
+			}
+			set {
+				availableFilters = value;
+			}
+		}
+
+		[JsonProperty]
+		string selectedFiltersText;
+		public string SelectedFiltersText {
+			get {
+				selectedFiltersText = string.Join(", ", AvailableFilters.Where(f => f.IsSelected).Select(f => f.Name));
+
+				return selectedFiltersText;
+			}
+			set {
+				selectedFiltersText = value;
+			}
 		}
 
 		private readonly IImageSaveMediator _imageSaveMediator;
@@ -102,7 +153,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			_messageBroker.Subscribe("Livestack_LivestackDockable_StackUpdateBroadcast", this);
 			_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
 			_imageSaveMediator.ImageSaved += ImagingMediator_ImageSaved;
-			_discordTrigger.Initialize(Message, SendImage, UseLiveStackImage, AfterExposures, this.GetSequenceTarget()?.TargetName);
+			_discordTrigger.Initialize(Message, SendImage, UseLiveStackImage, AfterExposures, this.GetSequenceTarget()?.TargetName, AvailableFilters);
 
 			base.SequenceBlockInitialize();
 		}
@@ -113,7 +164,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 		}
 
 		public override void SequenceBlockTeardown() {
-			_discordTrigger.Teardown();
+			_discordTrigger.Teardown().GetAwaiter().GetResult();
 			_imageSaveMediator.ImageSaved -= ImagingMediator_ImageSaved;
 			_messageBroker.Unsubscribe("Livestack_LivestackDockable_StackUpdateBroadcast", this);
 			base.SequenceBlockTeardown();
@@ -124,7 +175,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 				return Task.CompletedTask;
 			}
 
-			_discordTrigger.Execute(token);
+			_discordTrigger.Execute();
 
 			return Task.CompletedTask;
 		}

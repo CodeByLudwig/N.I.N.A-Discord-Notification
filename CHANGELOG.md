@@ -1,5 +1,8 @@
 ﻿# Discord Notification
 
+## 2.0.0.7
+- Feature: added patterns to define the thread name "$$FILTER$$")
+
 ## 2.0.0.6
 - Feature: added buttons to the plugin option page for testing the Discord Webhook & Discord Bot
 - Feature: added patterns to define the thread name "$$TARGET$$", "$$DATE$$", "$$DATEMINUS12$$", "$$DATETIME$$", "$$TIME$$")
