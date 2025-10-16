@@ -6,6 +6,10 @@ Additionally, users can specify an image path - such as a folder where a live st
 This makes it easy to share updates and images in real time.
 The plugin also includes a trigger that can automatically create a new Discord thread and post a message after exposures, helping to keep session-related messages organized.
 
+### Beta vs Release Channel
+- Discord Notification's current versions require N.I.N.A 3.2, which is currently in the Beta release channel. Basic functionality from verison 1.0.0.1 is available in the N.I.N.A. 3.1 Release channel.
+
+
 ## Options
 - **LiveStack:**
 The LiveStack image feature needs the 'LiveStack' plugin to be installed and configured as shown in the screenshots below.
