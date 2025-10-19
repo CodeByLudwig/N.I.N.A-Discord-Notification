@@ -15,6 +15,7 @@ namespace NINA.DiscordNotification.Models {
 		public bool IsBayered { get; }
 		public double Duration { get; }
 		public FileTypeEnum FileType { get; }
+		public string Filter { get; }
 
 		public ImageData(ImageSavedEventArgs eventArgs) {
 			Image = eventArgs.Image;
@@ -24,6 +25,7 @@ namespace NINA.DiscordNotification.Models {
 			IsBayered = eventArgs.IsBayered;
 			Duration = eventArgs.Duration;
 			FileType = eventArgs.FileType;
+			Filter = eventArgs.Filter;
 		}
 
 		public Dictionary<string, object> GetExtendedImageData() {
@@ -35,7 +37,8 @@ namespace NINA.DiscordNotification.Models {
 				{ "HFR", StarDetectionAnalysis.HFR },
 				{ "DetectedStars", StarDetectionAnalysis.DetectedStars },
 				{ "IsBayered", IsBayered },
-				{ "Duration", Duration }
+				{ "Duration", Duration },
+				{ "Filter", Filter }
 			};
 			return dict;
 		}

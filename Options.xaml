@@ -23,10 +23,25 @@
                     </StackPanel>
                 </Expander.Header>
                 <StackPanel Margin="0,10,0,0" Orientation="Vertical">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Width="200" Text="Discord Webhook URL" />
-                        <TextBox Margin="10,0,0,0" MinWidth="400" Text="{Binding DiscordWebhookUrl}" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Width="200" ToolTip="Not used for threads" VerticalAlignment="Center" Text="Discord Webhook URL" />
+                        <TextBox Margin="10,0,0,0" Grid.Column="1" Text="{Binding DiscordWebhookUrl}" />
+                        <Button
+                                 Height="20"
+                                 Width="130"
+                                 Grid.Column="2"
+                                 Margin="20,0,0,0"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Center"
+                                 Content="Test Webhook"
+                                 Click="TestDiscordWebhook">
+                        </Button>
+                    </Grid>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Margin="0,10,0,0" Width="200" Text="Image Scale Factor (%)" />
                         <TextBox Margin="10,10,0,0" MinWidth="150" Text="{Binding ImageScaleFactor}" />
@@ -61,15 +76,20 @@
                                  Margin="2,10,2,0"
                                  Data="{StaticResource DotsSVG}"
                                  Fill="{StaticResource ButtonForegroundBrush}"
-                                 Stretch="Uniform" />   
+                                 Stretch="Uniform" />
                             </Button>
                         </StackPanel>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="0,10,0,0" Width="200" TextWrapping="Wrap" ToolTip="e.g. R, G, B"  Text="Custom filters for the dropdown list (comma-separated)" />
+                        <TextBox Margin="10,10,0,0" MinWidth="150" Text="{Binding CustomFilters}" />
                     </StackPanel>
                 </StackPanel>
             </Expander>
             <Expander 
                 Margin="0,10,0,10"
-                ExpandDirection="Down">
+                ExpandDirection="Down"
+                IsExpanded="true">
                 <Expander.Header>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock
@@ -81,14 +101,52 @@
                     </StackPanel>
                 </Expander.Header>
                 <StackPanel Margin="0,10,0,0" Orientation="Vertical">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Width="200" Text="Discord Bot Token" />
-                        <TextBox Margin="12,0,0,0" MinWidth="400" Text="{Binding DiscordBotToken}" />
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Width="200" Text="Discord Bot Token" />
+                        <TextBox Grid.Column="1" Margin="10,0,0,0" MinWidth="400" Text="{Binding DiscordBotToken}" />
+                        <Button
+                          Grid.Column="2"
+                          Height="20"
+                          Width="130"
+                          Margin="20,0,0,0"
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Center"
+                          Content="Test Token"
+                          Click="TestDiscordToken">
+                        </Button>
+                    </Grid>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Margin="0,10,0,0" Width="200" Text="Discord Channel Id" />
                         <TextBox Margin="10,10,0,0" MinWidth="150" Text="{Binding DiscordChannelId}" />
                     </StackPanel>
+                    <Grid Margin="0,10,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Margin="0,0,10,0" Width="200" Text="Thread name template" />
+                        <TextBox 
+                            Grid.Column="1"
+                            Margin="0,0,10,0"
+                            MinWidth="150"
+                            Text="{Binding ThreadNameTemplate}" />
+                        <TextBox
+                            Text="Placeholders: $$TARGET$$, $$DATE$$, $$DATEMINUS12$$, $$DATETIME$$, $$TIME$$, $$FILTER$$"
+                            IsReadOnly="True"
+                            BorderThickness="0"
+                            Background="Transparent"
+                            Grid.Column="2"
+                            TextWrapping="Wrap"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Top"
+                            Cursor="IBeam" />
+                    </Grid>
                     <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
                         <TextBlock Width="200" Text="Thread Archive Duration" />
                         <ComboBox

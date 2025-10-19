@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,14 +20,19 @@ namespace NINA.DiscordNotification.Models {
 		public ImageData ImageData { get; set; }
 		public string TargetName { get; set; }
 		public bool UseLiveStackedImage { get; set; }
-		public IThreadChannel? Thread { get; set; }
+		public string Filter { get; set; }
 
 		private string _filePath;
-		private IEnumerable<KeyValuePair<string, object>> _extendedFields {
+
+		private Dictionary<string, object> _extendedFields = new();
+		private Dictionary<string, object> ExtendedFields {
 			get {
-				return ImageData?.GetExtendedImageData();
+				var baseFields = ImageData?.GetExtendedImageData() ?? new Dictionary<string, object>();
+				return baseFields.Concat(_extendedFields)
+								 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 			}
 		}
+
 		private readonly PrepareImageParameters _imageParameters = new(true, false);
 		private readonly IImageDataFactory _imageDataFactory;
 		private readonly IImagingMediator _imagingMediator;
@@ -38,7 +44,11 @@ namespace NINA.DiscordNotification.Models {
 			_profileService = profileService;
 		}
 
-		public async Task Send(string path) {
+		public void AddExtendedField(string key, object value) {
+			_extendedFields.Add(key, value);
+		}
+
+		public async Task Send(bool isThread, string path) {
 			try {
 				object image = null;
 				var sendStopwatch = new Stopwatch();
@@ -48,14 +58,20 @@ namespace NINA.DiscordNotification.Models {
 					image = await _imageDataFactory.RenderImage(ImageData, _profileService.ActiveProfile.CameraSettings);
 				} else {
 					_filePath = Path.Combine(Path.GetDirectoryName(path), $"image_{Guid.NewGuid()}.jpeg");
-					image = await FITS.Load(new Uri(path), false, _imageDataFactory, CancellationToken.None);
+
+					if (path.CheckExtensions([".fits"])) {
+						image = await FITS.Load(new Uri(path), false, _imageDataFactory, CancellationToken.None);
+					}
 				}
 
-				if (image != null) {
+				if (UseLiveStackedImage && path.CheckExtensions([".png", ".jpeg", ".jpeg"])) {
+					path.EncodeImage(_filePath);
+				} else if (image != null) {
 					(await _imagingMediator.PrepareImage((IImageData)image, _imageParameters, CancellationToken.None)).EncodeImage(_filePath);
 				}
+
 				sendStopwatch.Start();
-				await Send();
+				await Send(isThread);
 				sendStopwatch.Stop();
 
 				if (_filePath != null && File.Exists(_filePath)) {
@@ -68,13 +84,43 @@ namespace NINA.DiscordNotification.Models {
 			}
 		}
 
-		public async Task Send() {
-			try {
+		public async Task Send(bool isThread) {
+			async Task ExecuteSend(bool isThread) {
+				IThreadChannel thread = isThread ? await GetThread() : null;
+
 				if (_filePath != null) {
-					await GeneralHelpers.DiscordWebhook.SendFileMessage(_filePath, Text, _GetEmbedFields(), Thread);
+					await GeneralHelpers.DiscordWebhook.SendFileMessage(_filePath, Text, _GetEmbedFields(), thread);
 					return;
 				}
-				await GeneralHelpers.DiscordWebhook.SendMessage(Text, _GetEmbedFields(), Thread);
+				await GeneralHelpers.DiscordWebhook.SendMessage(Text, _GetEmbedFields(), thread);
+			}
+
+			async Task<IThreadChannel> GetThread() {
+				if (GeneralHelpers.DiscordSocket.ConnectionState == ConnectionState.Connected) {
+					return await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(TargetName, Filter), Properties.Settings.Default.DiscordChannelId);
+				}
+
+				var taskCompletion = new TaskCompletionSource<IThreadChannel>();
+
+				Task Handler() {
+					GeneralHelpers.DiscordSocket.Ready -= Handler;
+
+					_ = Task.Run(async () => {
+						var thread = await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(TargetName, Filter), Properties.Settings.Default.DiscordChannelId);
+
+						taskCompletion.SetResult(thread);
+					});
+
+					return Task.CompletedTask;
+				}
+
+				GeneralHelpers.DiscordSocket.Ready += Handler;
+
+				return await taskCompletion.Task;
+			}
+
+			try {
+				await ExecuteSend(isThread);
 			} catch (Exception ex) {
 				Notification.ShowWarning("Exception: " + ex);
 				Logger.Error(ex);
@@ -91,8 +137,8 @@ namespace NINA.DiscordNotification.Models {
 				});
 			}
 
-			if (_extendedFields != null) {
-				foreach (var extendedField in _extendedFields) {
+			if (ExtendedFields != null) {
+				foreach (var extendedField in ExtendedFields) {
 					if (extendedField.Value != null && !string.IsNullOrWhiteSpace(extendedField.Value.ToString())) {
 						fields.Add(new EmbedFieldBuilder {
 							Name = extendedField.Key,

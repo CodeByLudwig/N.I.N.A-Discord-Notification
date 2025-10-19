@@ -77,6 +77,17 @@ namespace NINA.DiscordNotification {
 				RaisePropertyChanged();
 			}
 		}
+		
+		public string ThreadNameTemplate {
+			get {
+				return Settings.Default.ThreadNameTemplate;
+			}
+			set {
+				Settings.Default.ThreadNameTemplate = value;
+				CoreUtil.SaveSettings(Settings.Default);
+				RaisePropertyChanged();
+			}
+		}
 
 		private AsyncObservableCollection<KeyValuePair<ThreadArchiveDuration, string>> archiveDurations;
 		public AsyncObservableCollection<KeyValuePair<ThreadArchiveDuration, string>> ArchiveDurations {
@@ -106,6 +117,17 @@ namespace NINA.DiscordNotification {
 			}
 			set {
 				Settings.Default.ImageScaleFactor = value;
+				CoreUtil.SaveSettings(Settings.Default);
+				RaisePropertyChanged();
+			}
+		}
+
+		public string CustomFilters {
+			get {
+				return Settings.Default.CustomFilters;
+			}
+			set {
+				Settings.Default.CustomFilters = value;
 				CoreUtil.SaveSettings(Settings.Default);
 				RaisePropertyChanged();
 			}
