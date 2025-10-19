@@ -121,6 +121,7 @@ namespace NINA.DiscordNotification.DiscordNotificationSequenceItems {
 			}
 		}
 
+
 		private readonly IImageSaveMediator _imageSaveMediator;
 		private readonly IImageDataFactory _imageDataFactory;
 		private readonly IImagingMediator _imagingMediator;

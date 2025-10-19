@@ -1,5 +1,9 @@
 ﻿# Discord Notification
 
+## 2.0.0.8
+- Feature: Added additional logging for better traceability and debugging.
+- Bugfix: Implemented today’s date as a fallback when the thread name is empty and resolved several issues related to message sending.
+ 
 ## 2.0.0.7
 - Feature: Added support for using patterns in thread names (e.g., $$FILTER$$).
 - Feature: Added the option “Select Filters to Send Images For” to triggers, allowing multiple filters to be selected for live-stacked image sending.
