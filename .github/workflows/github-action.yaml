@@ -17,7 +17,7 @@ env:
   # Adjust this to your plugin title
   PLUGIN_NAME: "NinaDiscordNotification"
   PLUGIN_DLL_NAME: "DiscordNotification"
-  PLUGIN_MANIFEST_PATH: "d/DiscordNotification/3.0.0
+  PLUGIN_MANIFEST_PATH: "d/DiscordNotification/3.0.0"
 
 jobs:
   build-and-release:
