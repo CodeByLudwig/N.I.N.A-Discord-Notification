@@ -4,8 +4,6 @@ using System.Windows;
 using System;
 using NINA.Core.Utility.Notification;
 using NINA.DiscordNotification.Helpers;
-using Discord.WebSocket;
-using Discord;
 using Discord.Net;
 using System.Threading.Tasks;
 
@@ -37,12 +35,7 @@ namespace NINA.DiscordNotification {
 			bool logErrorShown = false;
 
 			try {
-				if (GeneralHelpers.DiscordSocket != null) {
-					await GeneralHelpers.DiscordSocket.LogoutAsync();
-					await GeneralHelpers.DiscordSocket.StopAsync();
-					GeneralHelpers.DiscordSocket.Dispose();
-					GeneralHelpers.DiscordSocket = new DiscordSocketClient();
-				}
+				await GeneralHelpers.StopSocketAsync();
 
 				GeneralHelpers.DiscordSocket.Ready += async () => {
 					try {
@@ -64,8 +57,7 @@ namespace NINA.DiscordNotification {
 					return Task.CompletedTask;
 				};
 
-				await GeneralHelpers.DiscordSocket.LoginAsync(TokenType.Bot, Properties.Settings.Default.DiscordBotToken);
-				await GeneralHelpers.DiscordSocket.StartAsync();
+				await GeneralHelpers.EnsureSocketStartedAsync();
 			} catch (HttpException ex) {
 				Notification.ShowError(ex.Message);
 			} catch (Exception ex) {

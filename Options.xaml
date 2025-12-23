@@ -80,6 +80,14 @@
                             </Button>
                         </StackPanel>
                     </StackPanel>
+
+                    <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                        <TextBlock Margin="0,5,0,0" Width="200" TextWrapping="Wrap" Text="Send Embeds?" />
+                        <CheckBox
+                                Margin="10,0,0,0" MinWidth="40"
+                                IsChecked="{Binding SendEmbeds}" />
+                    </StackPanel>
+
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Margin="0,10,0,0" Width="200" TextWrapping="Wrap" ToolTip="e.g. R, G, B"  Text="Custom filters for the dropdown list (comma-separated)" />
                         <TextBox Margin="10,10,0,0" MinWidth="150" Text="{Binding CustomFilters}" />
