@@ -57,8 +57,9 @@
                 <StackPanel Orientation="Vertical">
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Margin="12,0,0,0" Orientation="Horizontal">
-                            <TextBlock VerticalAlignment="Center" Text="Message" />
+                            <TextBlock VerticalAlignment="Center" Text="Message" ToolTip="Dynamic patterns: $DATE$$, $$DATEMINUS12$$, $$DATETIME$$, $$TIME$$, $$TARGET$$, $$FILTER$$, $$RMSTOTAL$$, $$RMSDEC$$, $$RMSRA$$" />
                             <TextBox
+                               ToolTip="Dynamic patterns: $DATE$$, $$DATEMINUS12$$, $$DATETIME$$, $$TIME$$, $$TARGET$$, $$FILTER$$, $$RMSTOTAL$$, $$RMSDEC$$, $$RMSRA$$"
                                MinWidth="130"
                                Margin="6,0,0,0"
                                Text="{Binding Message}"
@@ -140,12 +141,13 @@
                 <StackPanel Orientation="Vertical">
                     <WrapPanel Orientation="Horizontal">
                         <StackPanel Margin="12,0,0,0" Orientation="Horizontal">
-                            <TextBlock VerticalAlignment="Center" Text="Message" />
+                            <TextBlock VerticalAlignment="Center" Text="Message" ToolTip="Dynamic patterns: $DATE$$, $$DATEMINUS12$$, $$DATETIME$$, $$TIME$$, $$TARGET$$, $$FILTER$$, $$RMSTOTAL$$, $$RMSDEC$$, $$RMSRA$$" />
                             <TextBox
-                MinWidth="130"
-                Margin="6,0,0,0"
-                Text="{Binding Message}"
-                TextAlignment="Left" />
+                                ToolTip="Dynamic patterns: $DATE$$, $$DATEMINUS12$$, $$DATETIME$$, $$TIME$$, $$TARGET$$, $$FILTER$$, $$RMSTOTAL$$, $$RMSDEC$$, $$RMSRA$$"
+                                MinWidth="130"
+                                Margin="6,0,0,0"
+                                Text="{Binding Message}"
+                                TextAlignment="Left" /> 
                         </StackPanel>
 
                         <StackPanel Margin="12,0,0,0" Orientation="Horizontal">

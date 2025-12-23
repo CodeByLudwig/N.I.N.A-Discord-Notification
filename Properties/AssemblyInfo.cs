@@ -11,8 +11,8 @@ using System.Runtime.InteropServices;
 
 // [MANDATORY] The assembly versioning
 //Should be incremented for each new release build of a plugin
-[assembly: AssemblyVersion("2.0.0.8")]
-[assembly: AssemblyFileVersion("2.0.0.8")]
+[assembly: AssemblyVersion("2.0.0.9")]
+[assembly: AssemblyFileVersion("2.0.0.9")]
 
 // [MANDATORY] The name of your plugin
 [assembly: AssemblyTitle("Discord Notification")]
@@ -85,6 +85,9 @@ The factor used to scale the image down.
 - **LiveStacked Image Directory:**
 The directory where the live stacked images are stored.
 
+- **Send Embeds:**
+Enables or disables embedded fields in the Discord message.
+
 - **Custom Filters for the Dropdown List:**
 Filters to extend the dropdown list (comma-separated).
 
@@ -104,6 +107,8 @@ Defines how long the created thread stays active before being auto-archived by D
 ## Options for the Trigger
 - **Message:**
 The input field for the message that should be sent. Can be left empty.
+This field supports dynamic patterns that will be automatically replaced with live data when the message is sent:
+    - **$$DATE$$**, **$$DATEMINUS12$$**, **$$DATETIME$$**, **$$TIME$$**, **$$TARGET$$**, **$$FILTER$$**, **$$RMSRA$$**, **$$RMSDEC$$**, **$$RMSTOTAL$$**
 
 - **After Exposures:**
 Specifies after how many exposures the message should be sent.

@@ -1,5 +1,4 @@
 ﻿using Discord;
-using NINA.Core.Model;
 using NINA.Core.Utility;
 using NINA.Core.Utility.Notification;
 using NINA.DiscordNotification.Helpers;
@@ -101,16 +100,27 @@ namespace NINA.DiscordNotification.Models {
 
 		public async Task<bool> Send(bool isThread) {
 			try {
-				IThreadChannel thread = null;
+				var session = GeneralHelpers.DiscordWebhook.ForTarget(TargetName).WithText(Text).WithFilter(Filter);
+
+				if (ImageData != null) {
+					session = session.WithRMS(ImageData.GetRMS());
+				}
 
 				if (isThread) {
-					thread = await GetThreadAsync();
+					var thread = await GetThreadAsync();
+					session = session.InThread(thread);
+				}
+
+				var fields = _GetEmbedFields();
+				Notification.ShowError($"Embed fields count: {Properties.Settings.Default.SendEmbeds}");
+				if (fields.Any() && Properties.Settings.Default.SendEmbeds) {
+					session = session.WithFields(fields);
 				}
 
 				if (!string.IsNullOrEmpty(_filePath) && File.Exists(_filePath)) {
-					await GeneralHelpers.DiscordWebhook.SendFileMessage(_filePath, Text, _GetEmbedFields(), thread);
+					await session.SendFileMessage(_filePath);
 				} else {
-					await GeneralHelpers.DiscordWebhook.SendMessage(Text, _GetEmbedFields(), thread);
+					await session.SendMessage();
 				}
 			} catch (Exception ex) {
 				Notification.ShowWarning("Exception during Discord send: " + ex.Message);
@@ -150,21 +160,28 @@ namespace NINA.DiscordNotification.Models {
 
 		private List<EmbedFieldBuilder> _GetEmbedFields() {
 			var fields = new List<EmbedFieldBuilder>();
+			var addedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
 			if (!string.IsNullOrWhiteSpace(TargetName)) {
 				fields.Add(new EmbedFieldBuilder {
 					Name = "Target",
 					Value = TargetName
 				});
+				addedKeys.Add("Target");
 			}
 
 			if (ExtendedFields != null) {
 				foreach (var extendedField in ExtendedFields) {
 					if (extendedField.Value != null && !string.IsNullOrWhiteSpace(extendedField.Value.ToString())) {
-						fields.Add(new EmbedFieldBuilder {
-							Name = extendedField.Key,
-							Value = extendedField.Value
-						});
+						if (!addedKeys.Contains(extendedField.Key)) {
+							fields.Add(new EmbedFieldBuilder {
+								Name = extendedField.Key,
+								Value = extendedField.Value
+							});
+							addedKeys.Add(extendedField.Key);
+						} else {
+							Logger.Warning($"Skipped duplicate embed field key: {extendedField.Key}");
+						}
 					}
 				}
 			}

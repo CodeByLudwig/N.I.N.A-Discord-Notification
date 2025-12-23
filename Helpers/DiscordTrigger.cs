@@ -1,7 +1,4 @@
-﻿using Discord;
-using Discord.WebSocket;
-using Grpc.Core;
-using NINA.Core.Model;
+﻿using NINA.Core.Model;
 using NINA.Core.Utility;
 using NINA.Core.Utility.Notification;
 using NINA.DiscordNotification.Models;
@@ -10,8 +7,6 @@ using NINA.Image.Interfaces;
 using NINA.Profile.Interfaces;
 using NINA.Sequencer.Interfaces;
 using NINA.Sequencer.SequenceItem;
-using NINA.WPF.Base.Interfaces.Mediator;
-using NINA.WPF.Base.Mediator;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -32,6 +27,7 @@ namespace NINA.DiscordNotification.Helpers {
 		public int AfterExposures { get; set; }
 		public List<FilterOption> SelectedFilters { get; set; }
 		public string TargetName { get; set; }
+		public ImageData ImageData { get; set; }
 
 		private int _exposuresDone;
 		private bool _sendMessage;
@@ -62,20 +58,7 @@ namespace NINA.DiscordNotification.Helpers {
 				return;
 			}
 
-			if (GeneralHelpers.DiscordSocket != null) {
-				await GeneralHelpers.DiscordSocket.LogoutAsync();
-				await GeneralHelpers.DiscordSocket.StopAsync();
-				GeneralHelpers.DiscordSocket.Dispose();
-				GeneralHelpers.DiscordSocket = new DiscordSocketClient();
-			}
-
-			try {
-				await GeneralHelpers.DiscordSocket.LoginAsync(TokenType.Bot, Properties.Settings.Default.DiscordBotToken);
-				await GeneralHelpers.DiscordSocket.StartAsync();
-			} catch (Exception ex) {
-				Notification.ShowError(ex.Message);
-				Logger.Error($"Discord login failed: {ex.Message}");
-			}
+			await GeneralHelpers.EnsureSocketStartedAsync();
 		}
 
 		public async Task Teardown(int timeout = 60000, CancellationToken cancellationToken = default) {
@@ -105,7 +88,7 @@ namespace NINA.DiscordNotification.Helpers {
 				await Task.Delay(200, cancellationToken);
 			}
 
-			await _refreshDiscordSocket();
+			await GeneralHelpers.StopSocketAsync();
 
 			_exposuresDone = 0;
 			_sendMessage = false;
@@ -171,6 +154,8 @@ namespace NINA.DiscordNotification.Helpers {
 		}
 
 		public void ImageSaved(ImageData imageData) {
+			ImageData = imageData;
+
 			if (UseLiveStackImage) return;
 
 			_OnBroadcastTriggered(imageData);
@@ -213,7 +198,6 @@ namespace NINA.DiscordNotification.Helpers {
 			EnqueueNext();
 		}
 
-
 		private void _OnBroadcastTriggered(ImageData imageData = null) {
 			void EnqueueNext() {
 				SendCommand cmd = null;
@@ -246,7 +230,6 @@ namespace NINA.DiscordNotification.Helpers {
 			EnqueueNext();
 		}
 
-
 		private async Task<FileInfo> _SendLiveStackImage(string selectedFilterName) {
 			FileInfo latestFile = null;
 			var fileName = $"{TargetName}-{selectedFilterName}";
@@ -264,12 +247,13 @@ namespace NINA.DiscordNotification.Helpers {
 				var message = new Message(_imagingMediator, _imageDataFactory, _profileService) {
 					Text = Message,
 					TargetName = TargetName,
+					ImageData = ImageData,
 					UseLiveStackedImage = true,
 					Filter = selectedFilterName
 				};
 
 				message.AddExtendedField("File Name", fileName);
-				message.AddExtendedField("Filter", selectedFilterName);
+				message.AddExtendedField("SelectedFilter", selectedFilterName);
 				await message.Send(_isThread, latestFile.FullName);
 
 				return latestFile;
@@ -305,15 +289,6 @@ namespace NINA.DiscordNotification.Helpers {
 			UseLiveStackImage = useLiveStackImage;
 			AfterExposures = afterExposures;
 			SelectedFilters = availableFilters.Where(filter => filter.IsSelected).ToList();
-		}
-
-		private async Task _refreshDiscordSocket() {
-			if (GeneralHelpers.DiscordSocket != null) {
-				await GeneralHelpers.DiscordSocket.LogoutAsync();
-				await GeneralHelpers.DiscordSocket.StopAsync();
-				GeneralHelpers.DiscordSocket.Dispose();
-				GeneralHelpers.DiscordSocket = new DiscordSocketClient();
-			}
 		}
 	}
 }

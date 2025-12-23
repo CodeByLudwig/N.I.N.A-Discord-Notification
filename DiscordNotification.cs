@@ -122,6 +122,17 @@ namespace NINA.DiscordNotification {
 			}
 		}
 
+		public bool SendEmbeds {
+			get {
+				return Settings.Default.SendEmbeds;
+			}
+			set {
+				Settings.Default.SendEmbeds = value;
+				CoreUtil.SaveSettings(Settings.Default);
+				RaisePropertyChanged();
+			}
+		}
+
 		public string CustomFilters {
 			get {
 				return Settings.Default.CustomFilters;
