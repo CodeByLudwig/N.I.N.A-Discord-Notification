@@ -112,7 +112,7 @@ namespace NINA.DiscordNotification.Models {
 				}
 
 				var fields = _GetEmbedFields();
-				Notification.ShowError($"Embed fields count: {Properties.Settings.Default.SendEmbeds}");
+
 				if (fields.Any() && Properties.Settings.Default.SendEmbeds) {
 					session = session.WithFields(fields);
 				}

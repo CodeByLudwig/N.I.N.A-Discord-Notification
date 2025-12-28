@@ -1,5 +1,8 @@
 ﻿# Discord Notification
 
+## 2.0.0.10
+- Bugfix: Removed wrong notification
+
 ## 2.0.0.9
 - Feature: Added dynamic patterns to the message input field. ("$$TARGET$$", "$$DATE$$", "$$DATEMINUS12$$", "$$DATETIME$$", "$$TIME$$", "$$TARGET$$", "$$FILTER$$", "$$RMSRA$$", "$$RMSDEC$$", "$$RMSTOTAL$$")
 - Feature: Added the option "Send Embeds" to enable or disable embedded fields in the Discord message.
