@@ -4,10 +4,7 @@ using System.Windows;
 using System;
 using NINA.Core.Utility.Notification;
 using NINA.DiscordNotification.Helpers;
-using Discord.WebSocket;
-using Discord;
 using Discord.Net;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace NINA.DiscordNotification {
@@ -20,12 +17,15 @@ namespace NINA.DiscordNotification {
 
 		private async void TestDiscordWebhook(object sender, RoutedEventArgs e) {
 			try {
-				await new Message(null, null, null) {
+				var success = await new Message(null, null, null) {
 					Text = "This is a message for testing",
 					TargetName = "Test",
 					Filter = null
 				}.Send(false);
-				Notification.ShowSuccess("Message successfully sent");
+
+				if (success) {
+					Notification.ShowSuccess("Message successfully sent");
+				}
 			} catch (Exception ex) {
 				Notification.ShowError(ex.Message);
 			}
@@ -35,16 +35,11 @@ namespace NINA.DiscordNotification {
 			bool logErrorShown = false;
 
 			try {
-				if (GeneralHelpers.DiscordSocket != null) {
-					await GeneralHelpers.DiscordSocket.LogoutAsync();
-					await GeneralHelpers.DiscordSocket.StopAsync();
-					GeneralHelpers.DiscordSocket.Dispose();
-					GeneralHelpers.DiscordSocket = new DiscordSocketClient();
-				}
+				await GeneralHelpers.StopSocketAsync();
 
 				GeneralHelpers.DiscordSocket.Ready += async () => {
 					try {
-						var result = await GeneralHelpers.InitDiscordSocket("Test", Properties.Settings.Default.DiscordChannelId);
+						var result = await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(GeneralHelpers.TimePattern, null), Properties.Settings.Default.DiscordChannelId);
 						if (result != null) {
 							Notification.ShowSuccess("Thread successfully created");
 						}
@@ -62,8 +57,7 @@ namespace NINA.DiscordNotification {
 					return Task.CompletedTask;
 				};
 
-				await GeneralHelpers.DiscordSocket.LoginAsync(TokenType.Bot, Properties.Settings.Default.DiscordBotToken);
-				await GeneralHelpers.DiscordSocket.StartAsync();
+				await GeneralHelpers.EnsureSocketStartedAsync();
 			} catch (HttpException ex) {
 				Notification.ShowError(ex.Message);
 			} catch (Exception ex) {

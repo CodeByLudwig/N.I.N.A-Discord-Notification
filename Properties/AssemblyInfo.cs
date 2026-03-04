@@ -11,8 +11,8 @@ using System.Runtime.InteropServices;
 
 // [MANDATORY] The assembly versioning
 //Should be incremented for each new release build of a plugin
-[assembly: AssemblyVersion("2.0.0.7")]
-[assembly: AssemblyFileVersion("2.0.0.7")]
+[assembly: AssemblyVersion("2.0.0.10")]
+[assembly: AssemblyFileVersion("2.0.0.10")]
 
 // [MANDATORY] The name of your plugin
 [assembly: AssemblyTitle("Discord Notification")]
@@ -64,8 +64,16 @@ The plugin also includes a trigger that can automatically create a new Discord t
 ### Beta vs Release Channel
 - Discord Notification's current versions require N.I.N.A 3.2, which is currently in the Beta release channel. Basic functionality from verison 1.0.0.1 is available in the N.I.N.A. 3.1 Release channel.
 
+### Information
+- If the thread name is left empty, the current date will automatically be used as a fallback value.
+
 ## LiveStack
 - The LiveStack image feature needs the 'LiveStack' plugin to be installed and configured as shown in the screenshots below.
+### Important!
+- The plugin must have live stacking started before images can be sent.
+- You should also configure a minimum delay of 60 seconds after the exposures are finished, before stopping the live stacking process.
+- The “LiveStacked Image Path” must be set to the folder where the stacked files created by the LiveStack plugin are stored.
+- To ensure reliable sending of live stacked images, it is recommended to use at least 4 iterations of the loop condition.
 
 ## General Options
 - **Discord Webhook URL:**
@@ -76,6 +84,9 @@ The factor used to scale the image down.
 
 - **LiveStacked Image Directory:**
 The directory where the live stacked images are stored.
+
+- **Send Embeds:**
+Enables or disables embedded fields in the Discord message.
 
 - **Custom Filters for the Dropdown List:**
 Filters to extend the dropdown list (comma-separated).
@@ -96,6 +107,8 @@ Defines how long the created thread stays active before being auto-archived by D
 ## Options for the Trigger
 - **Message:**
 The input field for the message that should be sent. Can be left empty.
+This field supports dynamic patterns that will be automatically replaced with live data when the message is sent:
+    - **$$DATE$$**, **$$DATEMINUS12$$**, **$$DATETIME$$**, **$$TIME$$**, **$$TARGET$$**, **$$FILTER$$**, **$$RMSRA$$**, **$$RMSDEC$$**, **$$RMSTOTAL$$**
 
 - **After Exposures:**
 Specifies after how many exposures the message should be sent.

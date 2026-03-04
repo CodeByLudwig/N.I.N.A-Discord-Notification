@@ -10,6 +10,7 @@ namespace NINA.DiscordNotification.Models {
 	public class ImageData {
 		public BitmapSource Image { get; }
 		public CameraParameter CameraParameter { get; }
+		public ImageParameter ImageParameter { get; }
 		public IStarDetectionAnalysis StarDetectionAnalysis { get; }
 		public Uri PathToImage { get; }
 		public bool IsBayered { get; }
@@ -20,6 +21,7 @@ namespace NINA.DiscordNotification.Models {
 		public ImageData(ImageSavedEventArgs eventArgs) {
 			Image = eventArgs.Image;
 			CameraParameter = eventArgs.MetaData.Camera;
+			ImageParameter = eventArgs.MetaData.Image;
 			StarDetectionAnalysis = eventArgs.StarDetectionAnalysis;
 			PathToImage = eventArgs.PathToImage;
 			IsBayered = eventArgs.IsBayered;
@@ -42,5 +44,19 @@ namespace NINA.DiscordNotification.Models {
 			};
 			return dict;
 		}
+
+		public RMSData GetRMS() {
+			return new RMSData() {
+				TotalText = ImageParameter.RecordedRMS.TotalText,
+				RAText = ImageParameter.RecordedRMS.RAText,
+				DecText = ImageParameter.RecordedRMS.DecText
+			};
+		}
+	}
+
+	public class RMSData {
+		public string TotalText { get; set; }
+		public string RAText { get; set; }
+		public string DecText { get; set; }
 	}
 }

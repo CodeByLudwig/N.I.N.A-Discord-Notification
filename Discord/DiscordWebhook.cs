@@ -1,101 +1,118 @@
-﻿
-using System.Threading.Tasks;
-using Discord.Webhook;
-using System;
-using NINA.Core.Utility;
-using Discord;
-using System.Collections.Generic;
+﻿using Discord;
 using Discord.Net;
-using System.IO;
+using Discord.Webhook;
+using NINA.Core.Utility;
 using NINA.Core.Utility.Notification;
+using NINA.DiscordNotification.Discord;
+using NINA.DiscordNotification.Helpers;
+using NINA.DiscordNotification.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 
-namespace NINA.DiscordNotification.Discord {
+public class DiscordWebhook : IDiscordWebhook {
+	private readonly DiscordWebhookClient _client;
 
-	public class DiscordWebhook : IDiscordWebhook {
+	public DiscordWebhook(string webhookUrl) {
+		if (string.IsNullOrWhiteSpace(webhookUrl)) {
+			Logger.Warning("Discord webhook URL is null or empty.");
+			return;
+		}
 
-		private DiscordWebhookClient _discordWebhookClient;
+		_client = new DiscordWebhookClient(webhookUrl);
+	}
 
-		public DiscordWebhook(string webhookUrl) {
-			try {
-				if (!string.IsNullOrEmpty(webhookUrl)) {
-					_discordWebhookClient = new DiscordWebhookClient(webhookUrl);
-				}
-			} catch (HttpException ex) {
-				Logger.Error($"Could not create discord webhook client", ex);
-				throw new Exception(ex.Message);
-			} catch (Exception ex) {
-				Logger.Error($"Could not create discord webhook client", ex);
-				throw new Exception(ex.Message);
+	public async Task SendAsync(
+		string text,
+		IEnumerable<EmbedFieldBuilder> fields,
+		string targetName,
+		string filter,
+		IThreadChannel thread,
+		RMSData rmsData) {
+		text = GeneralHelpers.ReplacePatterns(text, targetName, filter, rmsData);
+
+		if (thread != null) {
+			await thread.SendMessageAsync(text, embeds: fields != null
+			? new[] { _BuildEmbed(text, fields).Build() } : null);
+		} else if (_client != null) {
+			await _client.SendMessageAsync(text, embeds: fields != null
+			? new[] { _BuildEmbed(text, fields).Build() } : null);
+		}
+	}
+
+	public async Task SendFileAsync(string filePath, string text, IEnumerable<EmbedFieldBuilder> fields, string targetName, string filter, IThreadChannel thread, RMSData rmsData) {
+		text = GeneralHelpers.ReplacePatterns(text, targetName, filter, rmsData);
+
+		try {
+			Logger.Info($"Attempting to send Discord file message. File: {filePath}");
+
+			if (thread != null) {
+				await thread.SendFileAsync(
+					filePath,
+					text: text,
+					embeds: fields != null
+		? new[] { _BuildEmbed(text, fields).Build() } : null);
+			} else if (_client != null) {
+				await _client.SendFileAsync(
+					filePath,
+					text: text,
+					embeds: fields != null
+		? new[] { _BuildEmbed(text, fields).Build() } : null);
+			} else {
+				Logger.Warning("DiscordWebhookClient is null. File message not sent.");
+				return;
 			}
-		}
 
-		public async Task SendMessage(string text = null, IEnumerable<EmbedFieldBuilder> fields = null, IThreadChannel thread = null) {
-			await _SendMessage(text, fields, thread);
-		}
+			Logger.Info("Discord file message sent successfully.");
+		} catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.RequestEntityTooLarge) {
+			Logger.Warning("Discord file too large to send.");
+			var fileSizeMB = new FileInfo(filePath).Length / (1024.0 * 1024.0);
 
-		public async Task SendFileMessage(string filePath, string text = null, IEnumerable<EmbedFieldBuilder> fields = null, IThreadChannel thread = null) {
-			await _SendFile(filePath, text, fields, thread);
-		}
-
-		private async Task _SendMessage(string text, IEnumerable<EmbedFieldBuilder> fields, IThreadChannel thread = null) {
-			try {
-				if (thread != null) {
-					await thread.SendMessageAsync(fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
-				} else if (_discordWebhookClient != null) {
-					await _discordWebhookClient.SendMessageAsync(fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
-				}
-			} catch (HttpException ex) {
-				Notification.ShowError(ex.Message);
-				Logger.Error($"Could not send message", ex);
-			} catch (Exception ex) {
-				Notification.ShowError(ex.Message);
-				Logger.Error($"Could not send message", ex);
-			}
-		}
-
-		private async Task _SendFile(string filePath, string text, IEnumerable<EmbedFieldBuilder> fields, IThreadChannel thread = null) {
-			try {
-				if (thread != null) {
-					await thread.SendFileAsync(filePath, fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
-				} else if (_discordWebhookClient != null) {
-					await _discordWebhookClient.SendFileAsync(filePath, fields == null ? text : null, embeds: fields != null ? [_BuildEmbeds(text, fields).Build()] : null);
-				}
-			} catch (HttpException ex) {
-				if (ex.DiscordCode == DiscordErrorCode.RequestEntityTooLarge) {
-					var fileSize = new FileInfo(filePath).Length / (1024.0 * 1024.0);
-					var errorField = new List<EmbedFieldBuilder>();
-					errorField.AddRange(fields);
-					errorField.Add(
-						new EmbedFieldBuilder {
-							Name = "Image",
-							Value = $"The file is too large ({Math.Round(fileSize, 2)} MB)"
-						});
-					if (thread != null) {
-						await thread.SendMessageAsync(fields == null ? text : null, embeds: errorField != null ? [_BuildEmbeds(text, errorField).Build()] : null);
-					} else {
-						await _discordWebhookClient.SendMessageAsync(fields == null ? text : null, embeds: errorField != null ? [_BuildEmbeds(text, errorField).Build()] : null);
+			var errorFields = new List<EmbedFieldBuilder>(fields ?? Array.Empty<EmbedFieldBuilder>())
+			{
+					new EmbedFieldBuilder
+					{
+						Name = "Image",
+						Value = $"The file is too large ({Math.Round(fileSizeMB, 2)} MB). Please reduce the size."
 					}
-				}
-				Logger.Error($"Could not send file message", ex);
-			} catch (Exception ex) {
-				Logger.Error($"Could not send file message", ex);
+				};
+
+			if (thread != null) {
+				await thread.SendMessageAsync(
+					text: text,
+					embeds: new[] { _BuildEmbed(text, errorFields).Build() });
+			} else if (_client != null) {
+				await _client.SendMessageAsync(
+					text: text,
+					embeds: new[] { _BuildEmbed(text, errorFields).Build() });
+			}
+		} catch (HttpException ex) {
+			Notification.ShowError($"Discord API Error: {ex.Message}");
+			Logger.Error("Failed to send Discord file message due to HttpException.", ex);
+		} catch (Exception ex) {
+			Notification.ShowError($"Error sending Discord file message: {ex.Message}");
+			Logger.Error("Failed to send Discord file message due to unexpected exception.", ex);
+		}
+	}
+
+	public DiscordWebhookSession ForTarget(string targetName) {
+		return new DiscordWebhookSession(this, targetName);
+	}
+
+	private EmbedBuilder _BuildEmbed(string text, IEnumerable<EmbedFieldBuilder> fields) {
+		var embed = new EmbedBuilder {
+			Timestamp = DateTime.UtcNow,
+			Color = Color.Blue,
+			Description = text
+		};
+
+		if (fields != null) {
+			foreach (var field in fields) {
+				embed.AddField(field);
 			}
 		}
 
-		private EmbedBuilder _BuildEmbeds(string text, IEnumerable<EmbedFieldBuilder> fields) {
-			var embed = new EmbedBuilder {
-				Timestamp = DateTime.UtcNow,
-				Color = Color.Blue,
-				Description = text
-			};
-
-			if (fields != null) {
-				foreach (var field in fields) {
-					embed.AddField(field);
-				}
-			}
-
-			return embed;
-		}
+		return embed;
 	}
 }

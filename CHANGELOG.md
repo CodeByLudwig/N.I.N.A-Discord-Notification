@@ -1,5 +1,16 @@
 ﻿# Discord Notification
 
+## 2.0.0.10
+- Bugfix: Removed wrong notification
+
+## 2.0.0.9
+- Feature: Added dynamic patterns to the message input field. ("$$TARGET$$", "$$DATE$$", "$$DATEMINUS12$$", "$$DATETIME$$", "$$TIME$$", "$$TARGET$$", "$$FILTER$$", "$$RMSRA$$", "$$RMSDEC$$", "$$RMSTOTAL$$")
+- Feature: Added the option "Send Embeds" to enable or disable embedded fields in the Discord message.
+
+## 2.0.0.8
+- Feature: Added additional logging for better traceability and debugging.
+- Bugfix: Implemented today’s date as a fallback when the thread name is empty and resolved several issues related to message sending.
+ 
 ## 2.0.0.7
 - Feature: Added support for using patterns in thread names (e.g., $$FILTER$$).
 - Feature: Added the option “Select Filters to Send Images For” to triggers, allowing multiple filters to be selected for live-stacked image sending.
@@ -9,7 +20,7 @@
 
 ## 2.0.0.6
 - Feature: added buttons to the plugin option page for testing the Discord Webhook & Discord Bot
-- Feature: added patterns to define the thread name "$$TARGET$$", "$$DATE$$", "$$DATEMINUS12$$", "$$DATETIME$$", "$$TIME$$")
+- Feature: added patterns to define the thread name ("$$TARGET$$", "$$DATE$$", "$$DATEMINUS12$$", "$$DATETIME$$", "$$TIME$$")
 - Bugfix: fixed error message "Cannot start an already running client" & fix for creating threads when no WebhookUrl is provided
 
 ## 2.0.0.5

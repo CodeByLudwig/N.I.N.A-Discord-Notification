@@ -24,7 +24,7 @@ namespace NINA.DiscordNotification.Models {
 
 		private string _filePath;
 
-		private Dictionary<string, object> _extendedFields = new();
+		private readonly Dictionary<string, object> _extendedFields = new();
 		private Dictionary<string, object> ExtendedFields {
 			get {
 				var baseFields = ImageData?.GetExtendedImageData() ?? new Dictionary<string, object>();
@@ -45,105 +45,143 @@ namespace NINA.DiscordNotification.Models {
 		}
 
 		public void AddExtendedField(string key, object value) {
-			_extendedFields.Add(key, value);
+			if (string.IsNullOrWhiteSpace(key)) {
+				Logger.Warning("Attempted to add extended field with null or whitespace key.");
+				return;
+			}
+
+			_extendedFields[key] = value;
 		}
 
 		public async Task Send(bool isThread, string path) {
 			try {
+				Logger.Info("Starting send process...");
+
 				object image = null;
-				var sendStopwatch = new Stopwatch();
+				var sendStopwatch = Stopwatch.StartNew();
 
 				if (!UseLiveStackedImage) {
 					_filePath = Path.Combine(path, $"image_{Guid.NewGuid()}.jpeg");
 					image = await _imageDataFactory.RenderImage(ImageData, _profileService.ActiveProfile.CameraSettings);
 				} else {
-					_filePath = Path.Combine(Path.GetDirectoryName(path), $"image_{Guid.NewGuid()}.jpeg");
+					var directory = Path.GetDirectoryName(path) ?? path;
+					_filePath = Path.Combine(directory, $"image_{Guid.NewGuid()}.jpeg");
 
-					if (path.CheckExtensions([".fits"])) {
+					if (path.CheckExtensions(new[] { ".fits" })) {
 						image = await FITS.Load(new Uri(path), false, _imageDataFactory, CancellationToken.None);
 					}
 				}
 
-				if (UseLiveStackedImage && path.CheckExtensions([".png", ".jpeg", ".jpeg"])) {
+				if (UseLiveStackedImage && path.CheckExtensions(new[] { ".png", ".jpeg", ".jpg" })) {
 					path.EncodeImage(_filePath);
-				} else if (image != null) {
-					(await _imagingMediator.PrepareImage((IImageData)image, _imageParameters, CancellationToken.None)).EncodeImage(_filePath);
+				} else if (image is IImageData imageData) {
+					var preparedImage = await _imagingMediator.PrepareImage(imageData, _imageParameters, CancellationToken.None);
+					preparedImage.EncodeImage(_filePath);
 				}
 
-				sendStopwatch.Start();
 				await Send(isThread);
+
 				sendStopwatch.Stop();
 
-				if (_filePath != null && File.Exists(_filePath)) {
-					File.Delete(_filePath);
+				if (!string.IsNullOrEmpty(_filePath) && File.Exists(_filePath)) {
+					try {
+						File.Delete(_filePath);
+					} catch (Exception ex) {
+						Logger.Warning($"Could not delete temp file '{_filePath}': {ex.Message}");
+					}
 				}
-				Logger.Info($"Image send time={sendStopwatch.ElapsedMilliseconds}ms");
+
+				Logger.Info($"Image send completed in {sendStopwatch.ElapsedMilliseconds} ms.");
 			} catch (Exception ex) {
-				Notification.ShowWarning("Exception: " + ex);
-				Logger.Error(ex);
+				Notification.ShowWarning("Exception during send: " + ex.Message);
+				Logger.Error("Exception during send:", ex);
 			}
 		}
 
-		public async Task Send(bool isThread) {
-			async Task ExecuteSend(bool isThread) {
-				IThreadChannel thread = isThread ? await GetThread() : null;
-
-				if (_filePath != null) {
-					await GeneralHelpers.DiscordWebhook.SendFileMessage(_filePath, Text, _GetEmbedFields(), thread);
-					return;
-				}
-				await GeneralHelpers.DiscordWebhook.SendMessage(Text, _GetEmbedFields(), thread);
-			}
-
-			async Task<IThreadChannel> GetThread() {
-				if (GeneralHelpers.DiscordSocket.ConnectionState == ConnectionState.Connected) {
-					return await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(TargetName, Filter), Properties.Settings.Default.DiscordChannelId);
-				}
-
-				var taskCompletion = new TaskCompletionSource<IThreadChannel>();
-
-				Task Handler() {
-					GeneralHelpers.DiscordSocket.Ready -= Handler;
-
-					_ = Task.Run(async () => {
-						var thread = await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(TargetName, Filter), Properties.Settings.Default.DiscordChannelId);
-
-						taskCompletion.SetResult(thread);
-					});
-
-					return Task.CompletedTask;
-				}
-
-				GeneralHelpers.DiscordSocket.Ready += Handler;
-
-				return await taskCompletion.Task;
-			}
-
+		public async Task<bool> Send(bool isThread) {
 			try {
-				await ExecuteSend(isThread);
+				var session = GeneralHelpers.DiscordWebhook.ForTarget(TargetName).WithText(Text).WithFilter(Filter);
+
+				if (ImageData != null) {
+					session = session.WithRMS(ImageData.GetRMS());
+				}
+
+				if (isThread) {
+					var thread = await GetThreadAsync();
+					session = session.InThread(thread);
+				}
+
+				var fields = _GetEmbedFields();
+
+				if (fields.Any() && Properties.Settings.Default.SendEmbeds) {
+					session = session.WithFields(fields);
+				}
+
+				if (!string.IsNullOrEmpty(_filePath) && File.Exists(_filePath)) {
+					await session.SendFileMessage(_filePath);
+				} else {
+					await session.SendMessage();
+				}
 			} catch (Exception ex) {
-				Notification.ShowWarning("Exception: " + ex);
-				Logger.Error(ex);
+				Notification.ShowWarning("Exception during Discord send: " + ex.Message);
+				Logger.Error("Exception during Discord send:", ex);
+				return false;
 			}
+
+			return true;
+		}
+
+		private async Task<IThreadChannel> GetThreadAsync() {
+			if (GeneralHelpers.DiscordSocket.ConnectionState == ConnectionState.Connected) {
+				return await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(TargetName, Filter), Properties.Settings.Default.DiscordChannelId);
+			}
+
+			var tcs = new TaskCompletionSource<IThreadChannel>();
+
+			Task Handler() {
+				GeneralHelpers.DiscordSocket.Ready -= Handler;
+
+				_ = Task.Run(async () => {
+					try {
+						var thread = await GeneralHelpers.InitDiscordSocket(GeneralHelpers.DefineThreadName(TargetName, Filter), Properties.Settings.Default.DiscordChannelId);
+						tcs.SetResult(thread);
+					} catch (Exception ex) {
+						tcs.SetException(ex);
+					}
+				});
+
+				return Task.CompletedTask;
+			}
+
+			GeneralHelpers.DiscordSocket.Ready += Handler;
+
+			return await tcs.Task;
 		}
 
 		private List<EmbedFieldBuilder> _GetEmbedFields() {
 			var fields = new List<EmbedFieldBuilder>();
+			var addedKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-			if (!string.IsNullOrEmpty(TargetName)) {
+			if (!string.IsNullOrWhiteSpace(TargetName)) {
 				fields.Add(new EmbedFieldBuilder {
 					Name = "Target",
 					Value = TargetName
 				});
+				addedKeys.Add("Target");
 			}
 
 			if (ExtendedFields != null) {
 				foreach (var extendedField in ExtendedFields) {
 					if (extendedField.Value != null && !string.IsNullOrWhiteSpace(extendedField.Value.ToString())) {
-						fields.Add(new EmbedFieldBuilder {
-							Name = extendedField.Key,
-							Value = extendedField.Value
-						});
+						if (!addedKeys.Contains(extendedField.Key)) {
+							fields.Add(new EmbedFieldBuilder {
+								Name = extendedField.Key,
+								Value = extendedField.Value
+							});
+							addedKeys.Add(extendedField.Key);
+						} else {
+							Logger.Warning($"Skipped duplicate embed field key: {extendedField.Key}");
+						}
 					}
 				}
 			}

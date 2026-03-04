@@ -9,6 +9,7 @@ using NINA.Sequencer.Container;
 using System;
 using System.Threading.Tasks;
 using System.Linq;
+using NINA.DiscordNotification.Models;
 
 namespace NINA.DiscordNotification.Helpers {
 	public static class GeneralHelpers {
@@ -18,12 +19,13 @@ namespace NINA.DiscordNotification.Helpers {
 		public static readonly string TimePattern = "$$TIME$$";
 		public static readonly string TargetPattern = "$$TARGET$$";
 		public static readonly string FilterPattern = "$$FILTER$$";
+		public static readonly string RmsPattern = "$$RMSTOTAL$$";
+		public static readonly string RmsDecPattern = "$$RMSDEC$$";
+		public static readonly string RmsRaPattern = "$$RMSRA$$";
 
-		public static IDiscordWebhook DiscordWebhook {
-			get {
-				return new DiscordWebhook(Properties.Settings.Default.DiscordWebhookUrl);
-			}
-		}
+		private static readonly Lazy<IDiscordWebhook> _discordWebhook =
+		new(() => new DiscordWebhook(Properties.Settings.Default.DiscordWebhookUrl));
+		public static IDiscordWebhook DiscordWebhook => _discordWebhook.Value;
 
 		private static DiscordSocketClient _discordSocket;
 		public static DiscordSocketClient DiscordSocket {
@@ -45,6 +47,25 @@ namespace NINA.DiscordNotification.Helpers {
 			}
 		}
 
+		public static async Task EnsureSocketStartedAsync() {
+			try {
+				await DiscordSocket.LoginAsync(TokenType.Bot, Properties.Settings.Default.DiscordBotToken);
+				await DiscordSocket.StartAsync();
+			} catch (Exception ex) {
+				Notification.ShowError(ex.Message);
+				Logger.Error($"Discord login failed: {ex.Message}");
+			}
+		}
+
+		public static async Task StopSocketAsync() {
+			if (DiscordSocket != null) {
+				await DiscordSocket.LogoutAsync();
+				await DiscordSocket.StopAsync();
+				DiscordSocket.Dispose();
+				DiscordSocket = new DiscordSocketClient();
+			}
+		}
+
 		public static InputTarget GetSequenceTarget(this ISequenceContainer container) {
 			if (container?.Parent == null) {
 				return null;
@@ -57,13 +78,29 @@ namespace NINA.DiscordNotification.Helpers {
 		}
 
 		public static string DefineThreadName(string targetName, string filter) {
-			if (string.IsNullOrEmpty(Properties.Settings.Default.ThreadNameTemplate)) {
-				return "";
-			}
 			DateTime now = DateTime.Now;
-			string dateMinus12 = now.TimeOfDay >= TimeSpan.FromHours(12) ? now.ToLocalTime().AddHours(-12).ToString("yyyy-MM-dd") : now.ToLocalTime().AddDays(-1).ToString("yyyy-MM-dd");
+			var today = now.ToLocalTime().ToString("yyyy-MM-dd");
+			if (string.IsNullOrEmpty(Properties.Settings.Default.ThreadNameTemplate)) {
+				return today;
+			}
 
-			return Properties.Settings.Default.ThreadNameTemplate.Replace(TargetPattern, targetName).Replace(FilterPattern, filter).Replace(DateMinus12Pattern, dateMinus12).Replace(DatePattern, now.ToLocalTime().ToString("yyyy-MM-dd")).Replace(DateTimePattern, now.ToLocalTime().ToString("yyyy-MM-dd_HH-mm")).Replace(TimePattern, now.ToLocalTime().ToString("HH-mm"));
+			var formatttedThreadName = ReplacePatterns(Properties.Settings.Default.ThreadNameTemplate, targetName, filter);
+			return string.IsNullOrEmpty(formatttedThreadName) ? today : formatttedThreadName;
+		}
+
+		public static string ReplacePatterns(string text, string targetName, string filter, RMSData rmsData = null) {
+			if (string.IsNullOrEmpty(text)) {
+				return null;
+			}
+
+			DateTime now = DateTime.Now;
+
+			string dateMinus12 = now.TimeOfDay >= TimeSpan.FromHours(12) ? now.ToLocalTime().AddHours(-12).ToString("yyyy-MM-dd") : now.ToLocalTime().AddDays(-1).ToString("yyyy-MM-dd");
+			var formattedText = text.Replace(TargetPattern, targetName).Replace(FilterPattern, filter).Replace(DateMinus12Pattern, dateMinus12).Replace(DatePattern, now.ToLocalTime().ToString("yyyy-MM-dd")).Replace(DateTimePattern, now.ToLocalTime().ToString("yyyy-MM-dd_HH-mm")).Replace(TimePattern, now.ToLocalTime().ToString("HH-mm"));
+
+			return rmsData != null
+				? formattedText.Replace(RmsPattern, rmsData.TotalText).Replace(RmsDecPattern, rmsData.DecText).Replace(RmsRaPattern, rmsData.RAText)
+				: formattedText;
 		}
 
 		public static async Task<IThreadChannel> InitDiscordSocket(string threadName, string id) {
@@ -82,7 +119,7 @@ namespace NINA.DiscordNotification.Helpers {
 			}
 
 			ulong channelId = Convert.ToUInt64(id);
-			var channel = _discordSocket.GetChannel(channelId) as ITextChannel;
+			var channel = DiscordSocket.GetChannel(channelId) as ITextChannel;
 
 			if (channel != null) {
 				var activeThreads = await channel.GetActiveThreadsAsync();
