@@ -6,6 +6,37 @@ Additionally, users can specify an image path - such as a folder where a live st
 This makes it easy to share updates and images in real time.
 The plugin also includes a trigger that can automatically create a new Discord thread and post a message after exposures, helping to keep session-related messages organized.
 
+## Quick Start
+
+### Prerequisites
+- N.I.N.A 3.2 (Beta release channel)
+- A Discord server where you can create webhooks
+- Optional: LiveStack plugin if you want to send live-stacked images
+
+### Installation
+1. Open N.I.N.A.
+2. Go to **Options → Plugins**.
+3. Install **Discord Notification** and restart N.I.N.A if prompted.
+
+## Tutorial: Setting up Discord Notifications
+
+### Step 1: Create a Discord Webhook
+1. Open your Discord server.
+2. Go to **Server Settings → Integrations → Webhooks**.
+3. Click **New Webhook**.
+4. Choose a channel and copy the webhook URL.
+
+### Step 2: Configure the Plugin in N.I.N.A
+1. Open **Options → Plugins → Discord Notification**.
+2. Paste the webhook URL into **Discord Webhook URL**.
+3. Configure optional settings such as **Image Scale Factor** and **LiveStacked Image Directory**.
+4. In your sequence, add a Discord Notification trigger and select what should be sent (message, image, or live-stacked image).
+
+### Step 3: Test Your Setup
+1. Run a short test sequence.
+2. Confirm that a notification appears in your selected Discord channel.
+3. If enabled, verify that attached images and dynamic fields (like `$$TARGET$$` or `$$FILTER$$`) are populated correctly.
+
 ### Beta vs Release Channel
 - Discord Notification's current versions require N.I.N.A 3.2, which is currently in the Beta release channel. Basic functionality from verison 1.0.0.1 is available in the N.I.N.A. 3.1 Release channel.
 
@@ -17,7 +48,7 @@ The plugin also includes a trigger that can automatically create a new Discord t
 ### Important!
 - The plugin must have live stacking started before images can be sent.
 - You should also configure a minimum delay of 60 seconds after the exposures are finished, before stopping the live stacking process.
-- The �LiveStacked Image Path� must be set to the folder where the stacked files created by the LiveStack plugin are stored.
+- The �LiveStacked Image Path� must be set to the folder where the stacked files created by the LiveStack plugin are stored.
 - To ensure reliable sending of live stacked images, it is recommended to use at least 4 iterations of the loop condition.
 
 ## General Options
@@ -72,4 +103,3 @@ Select multiple filters to send the live-stacked images.
 
 ![notification_settings](https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/livestacking_settins.png)
 ![livestacking_settins](https://github.com/CodeByLudwig/N.I.N.A-Discord-Notification/blob/develop/assets/notification_settings.png)
-
