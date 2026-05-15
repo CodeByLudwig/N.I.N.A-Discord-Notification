@@ -9,14 +9,14 @@ The plugin also includes a trigger that can automatically create a new Discord t
 ## Quick Start
 
 ### Prerequisites
-- N.I.N.A 3.2 (Beta release channel)
+- N.I.N.A. 3.2 (Beta release channel)
 - A Discord server where you can create webhooks
 - Optional: LiveStack plugin if you want to send live-stacked images
 
 ### Installation
 1. Open N.I.N.A.
 2. Go to **Options → Plugins**.
-3. Install **Discord Notification** and restart N.I.N.A if prompted.
+3. Install **Discord Notification** and restart N.I.N.A. if prompted.
 
 ## Tutorial: Setting up Discord Notifications
 
@@ -26,7 +26,7 @@ The plugin also includes a trigger that can automatically create a new Discord t
 3. Click **New Webhook**.
 4. Choose a channel and copy the webhook URL.
 
-### Step 2: Configure the Plugin in N.I.N.A
+### Step 2: Configure the Plugin in N.I.N.A.
 1. Open **Options → Plugins → Discord Notification**.
 2. Paste the webhook URL into **Discord Webhook URL**.
 3. Configure optional settings such as **Image Scale Factor** and **LiveStacked Image Directory**.
