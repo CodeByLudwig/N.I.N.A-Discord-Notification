@@ -38,7 +38,7 @@ The plugin also includes a trigger that can automatically create a new Discord t
 3. If enabled, verify that attached images and dynamic fields (like `$$TARGET$$` or `$$FILTER$$`) are populated correctly.
 
 ### Beta vs Release Channel
-- Discord Notification's current versions require N.I.N.A 3.2, which is currently in the Beta release channel. Basic functionality from verison 1.0.0.1 is available in the N.I.N.A. 3.1 Release channel.
+- Discord Notification's current versions require N.I.N.A 3.2, which is currently in the Beta release channel. Basic functionality from version 1.0.0.1 is available in the N.I.N.A. 3.1 Release channel.
 
 ### Information
 - If the thread name is left empty, the current date will automatically be used as a fallback value.
